@@ -103,9 +103,20 @@ Run `tools/backup.sh`. Change nothing until it has succeeded.
 - Write `my-tv/config.json`. Use `dock_apps` for their four most-used apps in the order they want, and
   `show_inputs_pill` true only if something is on HDMI. Set `show_network_pill` to false. Set
   `watchlist_languages` to their language codes in order (e.g. `["hi"]`); `watchlist_this_year` (true by
-  default) adds this year's most popular and best rated. If they gave an IMDb
-  link, run `tools/watchlist-preview.py "<link>"`, tell them what it found ("of your 239 titles, 16 are
-  on Netflix, 21 on Prime Video and the rest open in Stremio"), and add `watchlist_imdb_user` and `watchlist_country`.
+  default) adds this year's most popular and best rated. If they gave an IMDb link, run
+  `tools/watchlist-preview.py "<link>"`, tell them what it found ("of your 239 titles, 16 are on Netflix, 21
+  on Prime Video and the rest open in Stremio"), and add `watchlist_imdb_user` and `watchlist_country`.
+- Offer the extras in one checklist, and add the ones they want (every key is described in
+  `launcher/app/src/main/res/values/config.xml`):
+  - `watchlist_podcasts`: a Podcasts chip. Ask which YouTube shows they like and put the channels' IDs (UC...)
+    in `watchlist_podcast_channels`; without them it shows YouTube's popular podcasts for the country.
+  - `watchlist_trending` (this week in their country and worldwide), `watchlist_world_cinema`, and
+    `watchlist_directors` (IMDb name IDs, nm...).
+  - A chip for one person: `watchlist_personal_name`, with `watchlist_personal_mix` (e.g. `["korean_drama"]`)
+    and `watchlist_personal_titles` (IMDb IDs of films chosen for them). Ask what they love; don't guess.
+  - `watchlist_exclude_genres` for genres nobody wants (e.g. `["Horror"]`).
+  - `weather` (with `weather_place` if the internet connection's town is wrong), `navigation_sounds`, and
+    `screensaver_gallery` for the paintings.
 - Install JDK 17 and the Android SDK if needed (see the top of `tools/install-home.sh`), then run
   `tools/install-home.sh`.
 - Then switch off the stock home screen and Ambient Mode, and any optional groups they agreed to. Press Home,

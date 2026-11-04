@@ -63,6 +63,37 @@ final class Config {
     final List<String> watchlistLanguages;
     /** This year's popular and best-rated titles as two chips. */
     final boolean watchlistThisYear;
+    /** A Podcasts chip: YouTube's popular podcasts for the country, in the first watchlist language if set. */
+    final boolean watchlistPodcasts;
+    /** YouTube channel IDs for the Podcasts chip instead of YouTube's popular ones; each plays its newest episode. */
+    final List<String> watchlistPodcastChannels;
+    /** Two chips of what is trending this week: in the country, on the apps you have, and worldwide. */
+    final boolean watchlistTrending;
+    /** World cinema: the best-rated films that are not in English or the household's languages. */
+    final boolean watchlistWorldCinema;
+    /**
+     * A first chip made for one person: named for them (say, "Mum"), with the first language's picks (no horror),
+     * plus watchlistPersonalMix recipes (korean_drama: new K-dramas rated 7.5 and up) and four of
+     * watchlistPersonalTitles (IMDb IDs: films chosen for them) at a time. Empty: the first chip is the language.
+     */
+    final String watchlistPersonalName;
+    /** The screensaver as a gallery of public-domain paintings (Gallery), instead of the drifting clock. */
+    final boolean screensaverGallery;
+    /** IMDb genres no row ever shows ("Horror"), from searches, trending, directors and the watchlist alike. */
+    final List<String> watchlistExcludeGenres;
+    /** Soft notes as focus moves and things open (Sounds), at this share of the system-sound volume. */
+    final boolean navigationSounds;
+    final int navigationSoundVolume;
+    /** "android": Android TV's own sounds from the system folder; "wood": a small knock bundled here. */
+    final String navigationSoundSet;
+    /** IMDb name IDs (nm...) for a Directors chip: their photos, and OK on one opens their best films. */
+    final List<String> watchlistDirectors;
+    final List<String> watchlistPersonalMix;
+    final List<String> watchlistPersonalTitles;
+    /** Temperature and sky beside the date, and on the clock screensaver. */
+    final boolean weather;
+    /** A town or city for the weather; empty means wherever the internet connection says the TV is. */
+    final String weatherPlace;
 
     private Config(List<String> dockApps, List<String> hiddenApps, String liveTvPackage, String liveTvAction,
                    String sourcePanelService, String sourcePanelAction, String inputAction,
@@ -72,7 +103,12 @@ final class Config {
                    File wallpaper, boolean overlayApplied,
                    boolean showInputsPill, boolean showNetworkPill,
                    String watchlistImdbUser, String watchlistCountry, List<String> watchlistServices,
-                   List<String> watchlistLanguages, boolean watchlistThisYear) {
+                   List<String> watchlistLanguages, boolean watchlistThisYear, boolean watchlistPodcasts,
+                   List<String> watchlistPodcastChannels, boolean watchlistTrending, boolean watchlistWorldCinema,
+                   boolean weather, String weatherPlace, String watchlistPersonalName,
+                   List<String> watchlistPersonalMix, List<String> watchlistPersonalTitles, List<String> watchlistDirectors,
+                   boolean navigationSounds, int navigationSoundVolume, String navigationSoundSet,
+                   List<String> watchlistExcludeGenres, boolean screensaverGallery) {
         this.dockApps = Collections.unmodifiableList(dockApps);
         this.hiddenApps = Collections.unmodifiableList(hiddenApps);
         this.liveTvPackage = liveTvPackage;
@@ -97,6 +133,21 @@ final class Config {
         this.watchlistServices = Collections.unmodifiableList(watchlistServices);
         this.watchlistLanguages = Collections.unmodifiableList(watchlistLanguages);
         this.watchlistThisYear = watchlistThisYear;
+        this.watchlistPodcasts = watchlistPodcasts;
+        this.watchlistPodcastChannels = Collections.unmodifiableList(watchlistPodcastChannels);
+        this.watchlistTrending = watchlistTrending;
+        this.watchlistWorldCinema = watchlistWorldCinema;
+        this.weather = weather;
+        this.weatherPlace = weatherPlace;
+        this.watchlistPersonalName = watchlistPersonalName;
+        this.watchlistPersonalMix = Collections.unmodifiableList(watchlistPersonalMix);
+        this.watchlistPersonalTitles = Collections.unmodifiableList(watchlistPersonalTitles);
+        this.watchlistDirectors = Collections.unmodifiableList(watchlistDirectors);
+        this.navigationSounds = navigationSounds;
+        this.navigationSoundVolume = navigationSoundVolume;
+        this.navigationSoundSet = navigationSoundSet;
+        this.watchlistExcludeGenres = Collections.unmodifiableList(watchlistExcludeGenres);
+        this.screensaverGallery = screensaverGallery;
     }
 
     /** The folder the theme tools push into; null when external storage is unavailable. */
@@ -120,7 +171,7 @@ final class Config {
         boolean reducedMotion = res.getBoolean(R.bool.reduced_motion);
         String vpn = res.getString(R.string.vpn_app).trim();
         boolean homeSettings = res.getBoolean(R.bool.show_home_settings_shortcut);
-        int background = 0xFF000000;
+        int background = 0;   // 0: Backdrop.base(), the plum room; a background_color in config.json is used as is
         boolean applied = false;
         boolean inputsPill = res.getBoolean(R.bool.show_inputs_pill);
         boolean networkPill = res.getBoolean(R.bool.show_network_pill);
@@ -129,6 +180,21 @@ final class Config {
         List<String> services = new ArrayList<>(Arrays.asList(res.getStringArray(R.array.watchlist_services)));
         List<String> languages = new ArrayList<>(Arrays.asList(res.getStringArray(R.array.watchlist_languages)));
         boolean thisYear = res.getBoolean(R.bool.watchlist_this_year);
+        boolean podcasts = res.getBoolean(R.bool.watchlist_podcasts);
+        List<String> podcastChannels = new ArrayList<>(Arrays.asList(res.getStringArray(R.array.watchlist_podcast_channels)));
+        boolean trending = res.getBoolean(R.bool.watchlist_trending);
+        boolean worldCinema = res.getBoolean(R.bool.watchlist_world_cinema);
+        boolean weather = res.getBoolean(R.bool.weather);
+        String weatherPlace = res.getString(R.string.weather_place).trim();
+        String personalName = "";
+        List<String> personalMix = new ArrayList<>();
+        List<String> personalTitles = new ArrayList<>();
+        List<String> directors = new ArrayList<>(Arrays.asList(res.getStringArray(R.array.watchlist_directors)));
+        boolean sounds = res.getBoolean(R.bool.navigation_sounds);
+        int soundVolume = res.getInteger(R.integer.navigation_sound_volume);
+        String soundSet = res.getString(R.string.navigation_sound_set);
+        List<String> excludeGenres = new ArrayList<>(Arrays.asList(res.getStringArray(R.array.watchlist_exclude_genres)));
+        boolean gallery = res.getBoolean(R.bool.screensaver_gallery);
 
         File dir = dir(ctx);
         File file = dir != null ? new File(dir, FILE_NAME) : null;
@@ -157,6 +223,21 @@ final class Config {
             services = stringList(json, "watchlist_services", services);
             languages = stringList(json, "watchlist_languages", languages);
             thisYear = bool(json, "watchlist_this_year", thisYear);
+            podcasts = bool(json, "watchlist_podcasts", podcasts);
+            podcastChannels = stringList(json, "watchlist_podcast_channels", podcastChannels);
+            trending = bool(json, "watchlist_trending", trending);
+            worldCinema = bool(json, "watchlist_world_cinema", worldCinema);
+            weather = bool(json, "weather", weather);
+            weatherPlace = string(json, "weather_place", weatherPlace);
+            personalName = string(json, "watchlist_personal_name", personalName);
+            personalMix = stringList(json, "watchlist_personal_mix", personalMix);
+            personalTitles = stringList(json, "watchlist_personal_titles", personalTitles);
+            directors = stringList(json, "watchlist_directors", directors);
+            sounds = bool(json, "navigation_sounds", sounds);
+            soundVolume = integer(json, "navigation_sound_volume", soundVolume, 0, 100);
+            soundSet = string(json, "navigation_sound_set", soundSet);
+            excludeGenres = stringList(json, "watchlist_exclude_genres", excludeGenres);
+            gallery = bool(json, "screensaver_gallery", gallery);
         }
         File wallpaper = dir != null ? new File(dir, WALLPAPER_NAME) : null;
         if (wallpaper != null && !(wallpaper.isFile() && wallpaper.length() > 0)) wallpaper = null;
@@ -166,7 +247,9 @@ final class Config {
         return new Config(dock, hidden, liveTv, liveTvAction, panelService, panelAction, inputAction,
                 Math.max(1, columns), Math.max(0, rowsBelow), shamsi, moduleCards, reducedMotion,
                 vpn, homeSettings, background, wallpaper, applied,
-                inputsPill, networkPill, imdbUser, country, services, languages, thisYear);
+                inputsPill, networkPill, imdbUser, country, services, languages, thisYear, podcasts,
+                podcastChannels, trending, worldCinema, weather, weatherPlace, personalName, personalMix, personalTitles, directors,
+                sounds, soundVolume, soundSet, excludeGenres, gallery);
     }
 
     /** Reads and parses the overlay; any problem means "no overlay", never a crash on the home screen. */

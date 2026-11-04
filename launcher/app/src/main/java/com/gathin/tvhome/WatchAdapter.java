@@ -25,7 +25,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Posters for the watchlist row, with IMDb's rating in the corner. Posters are decoded off the
+ * Posters for the watchlist row, with IMDb's rating in the corner, and podcast covers with the show's name. Posters are decoded off the
  * main thread from the files {@link Watchlist} saved, at RGB_565, into a small memory cache, so scrolling the
  * row never waits on the disk and a long list does not hold every bitmap.
  */
@@ -40,7 +40,8 @@ final class WatchAdapter extends RecyclerView.Adapter<WatchAdapter.Holder> {
         boolean onPosterKey(int position, int keyCode);
     }
 
-    static final float FOCUS_SCALE = 1.06f;   // big posters need only a nudge
+    /** The focused poster grows from its left edge, which stays on the row's keyline, and rises above the next. */
+    static final float FOCUS_SCALE = 1.12f;
 
     private final Context context;
     private final Listener listener;
@@ -48,6 +49,9 @@ final class WatchAdapter extends RecyclerView.Adapter<WatchAdapter.Holder> {
     private final List<Watchlist.Item> items = new ArrayList<>();
     private final Handler main = new Handler(Looper.getMainLooper());
     private final ExecutorService decoder = Executors.newSingleThreadExecutor();
+    /** Posters not saved by the refresh are fetched here as they come on screen, two at a time. */
+    private final ExecutorService downloads = Executors.newFixedThreadPool(2);
+    private final java.util.Set<String> fetching = java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
     /** About 60 posters at 300×444 RGB_565; the row shows five or six at a time. */
     private final LruCache<String, Bitmap> cache = new LruCache<String, Bitmap>(16 * 1024 * 1024) {
         @Override
@@ -123,10 +127,18 @@ final class WatchAdapter extends RecyclerView.Adapter<WatchAdapter.Holder> {
     }
 
 
+    private static final int POSTER = 0, EPISODE = 1;
+
+    @Override
+    public int getItemViewType(int position) {
+        return Watchlist.PODCAST.equals(items.get(position).type) ? EPISODE : POSTER;
+    }
+
     @NonNull
     @Override
     public Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_poster, parent, false);
+        View v = LayoutInflater.from(parent.getContext())
+                .inflate(viewType == EPISODE ? R.layout.item_episode : R.layout.item_poster, parent, false);
         return new Holder(v);
     }
 
@@ -137,13 +149,22 @@ final class WatchAdapter extends RecyclerView.Adapter<WatchAdapter.Holder> {
         h.rating.setText(it.rating > 0 ? String.format(java.util.Locale.ROOT, "★ %.1f", it.rating) : "");
         h.rating.setVisibility(it.rating > 0 ? View.VISIBLE : View.GONE);
         h.image.setTag(it.imdb);
+        // An episode card always shows its title under the thumbnail, and its channel over it; a director's
+        // tile shows their name over their photo. A poster's title only stands in until the poster loads.
+        final boolean episode = h.channel != null;
+        if (episode) h.channel.setText(it.subtitle != null ? it.subtitle : "");
+        if (h.label != null) {
+            boolean director = Watchlist.DIRECTOR.equals(it.type);
+            h.label.setText(director ? it.title : "");
+            h.label.setVisibility(director ? View.VISIBLE : View.GONE);
+        }
         Bitmap cached = cache.get(it.imdb);
         h.image.setImageBitmap(cached);
-        h.title.setVisibility(cached == null ? View.VISIBLE : View.GONE);
+        h.title.setVisibility(cached == null || episode ? View.VISIBLE : View.GONE);
         if (cached != null) return;
         final String imdb = it.imdb;
-        decoder.execute(() -> {
-            File f = Watchlist.poster(context, imdb);
+        final File f = Watchlist.poster(context, imdb);
+        Runnable decode = () -> {
             if (!f.exists()) return;
             BitmapFactory.Options opts = new BitmapFactory.Options();
             opts.inPreferredConfig = Bitmap.Config.RGB_565;
@@ -158,21 +179,35 @@ final class WatchAdapter extends RecyclerView.Adapter<WatchAdapter.Holder> {
             main.post(() -> {
                 if (!imdb.equals(h.image.getTag())) return;   // the holder was recycled for another title
                 h.image.setImageBitmap(b);
-                h.title.setVisibility(View.GONE);
+                if (!episode) h.title.setVisibility(View.GONE);
             });
-        });
+        };
+        if (f.exists()) {
+            decoder.execute(decode);
+        } else if (it.posterUrl != null && fetching.add(imdb)) {
+            // Not saved yet (a genre's top-up, fetched lazily): download it now that the row shows it. One try
+            // per title per visit; the title shows in the meantime, and stays if the download fails.
+            downloads.execute(() -> {
+                Watchlist.fetchPoster(context, it);
+                decoder.execute(decode);
+            });
+        }
     }
 
     final class Holder extends RecyclerView.ViewHolder {
         final ImageView image;
         final TextView title;
         final TextView rating;
+        /** The channel on an episode card, and a director's name on their tile; null on the other layout. */
+        final TextView channel, label;
 
         Holder(View v) {
             super(v);
             image = v.findViewById(R.id.posterImage);
             title = v.findViewById(R.id.posterTitle);
             rating = v.findViewById(R.id.posterRating);
+            channel = v.findViewById(R.id.posterChannel);
+            label = v.findViewById(R.id.posterLabel);
             v.setClipToOutline(true);   // rounded corners from poster_bg
 
             v.setOnClickListener(view -> {
@@ -188,8 +223,10 @@ final class WatchAdapter extends RecyclerView.Adapter<WatchAdapter.Holder> {
             });
             v.setOnFocusChangeListener((view, focused) -> {
                 float s = focused ? FOCUS_SCALE : 1f;
+                view.setPivotX(0f);
+                view.setPivotY(view.getHeight() / 2f);
                 view.animate().cancel();
-                view.animate().scaleX(s).scaleY(s)
+                view.animate().scaleX(s).scaleY(s).translationZ(focused ? 8 * view.getResources().getDisplayMetrics().density : 0f)
                         .setDuration(reducedMotion ? (focused ? 120 : 80) : (focused ? 240 : 160))
                         .setInterpolator(reducedMotion || !focused ? new DecelerateInterpolator() : new OvershootInterpolator(1.4f))
                         .withLayer()

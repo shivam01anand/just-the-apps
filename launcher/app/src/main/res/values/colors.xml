@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Behind the first frame of Home, matching the plum of Backdrop.base(). -->
+    <color name="home_base">#FF140F17</color>
+</resources>

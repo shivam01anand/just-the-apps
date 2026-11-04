@@ -1,0 +1,386 @@
+[
+ {
+  "title": "Impression, Sunrise",
+  "artist": "Claude Monet",
+  "year": 1872,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Monet_-_Impression%2C_Sunrise.jpg/1920px-Monet_-_Impression%2C_Sunrise.jpg"
+ },
+ {
+  "title": "Woman with a Parasol",
+  "artist": "Claude Monet",
+  "year": 1875,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Claude_Monet_-_Woman_with_a_Parasol_-_Madame_Monet_and_Her_Son_-_Google_Art_Project.jpg/1280px-Claude_Monet_-_Woman_with_a_Parasol_-_Madame_Monet_and_Her_Son_-_Google_Art_Project.jpg"
+ },
+ {
+  "title": "San Giorgio Maggiore at Dusk",
+  "artist": "Claude Monet",
+  "year": 1908,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Amgueddfa_Cymru_-_San_Giorgio_Maggiore_yn_y_Gwyll_-_San_Giorgio_Maggiore%2C_Twilight_-_220983.jpeg/1920px-Amgueddfa_Cymru_-_San_Giorgio_Maggiore_yn_y_Gwyll_-_San_Giorgio_Maggiore%2C_Twilight_-_220983.jpeg"
+ },
+ {
+  "title": "The Starry Night",
+  "artist": "Vincent van Gogh",
+  "year": 1889,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/1920px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg"
+ },
+ {
+  "title": "Café Terrace at Night",
+  "artist": "Vincent van Gogh",
+  "year": 1888,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Van_Gogh_-_Terrace_of_a_Caf%C3%A9_at_Night_%28Place_du_Forum%29_1888.jpg/1280px-Van_Gogh_-_Terrace_of_a_Caf%C3%A9_at_Night_%28Place_du_Forum%29_1888.jpg"
+ },
+ {
+  "title": "Almond Blossoms",
+  "artist": "Vincent van Gogh",
+  "year": 1890,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Vincent_van_Gogh_-_Almond_blossom_-_Google_Art_Project.jpg/1920px-Vincent_van_Gogh_-_Almond_blossom_-_Google_Art_Project.jpg"
+ },
+ {
+  "title": "Wheat Field with Cypresses",
+  "artist": "Vincent van Gogh",
+  "year": 1889,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Wheat-Field-with-Cypresses-%281889%29-Vincent-van-Gogh-Met.jpg/1920px-Wheat-Field-with-Cypresses-%281889%29-Vincent-van-Gogh-Met.jpg"
+ },
+ {
+  "title": "Irises",
+  "artist": "Vincent van Gogh",
+  "year": 1889,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Irises-Vincent_van_Gogh.jpg/1920px-Irises-Vincent_van_Gogh.jpg"
+ },
+ {
+  "title": "The Bedroom",
+  "artist": "Vincent van Gogh",
+  "year": 1888,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Vincent_van_Gogh_-_De_slaapkamer_-_Google_Art_Project.jpg/1920px-Vincent_van_Gogh_-_De_slaapkamer_-_Google_Art_Project.jpg"
+ },
+ {
+  "title": "Wheatfield with Crows",
+  "artist": "Vincent van Gogh",
+  "year": 1890,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Korenveld_met_kraaien_-_s0149V1962_-_Van_Gogh_Museum.jpg/1920px-Korenveld_met_kraaien_-_s0149V1962_-_Van_Gogh_Museum.jpg"
+ },
+ {
+  "title": "Luncheon of the Boating Party",
+  "artist": "Pierre-Auguste Renoir",
+  "year": 1881,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Pierre-Auguste_Renoir_-_Luncheon_of_the_Boating_Party_-_Google_Art_Project.jpg/1920px-Pierre-Auguste_Renoir_-_Luncheon_of_the_Boating_Party_-_Google_Art_Project.jpg"
+ },
+ {
+  "title": "Dance at Le Moulin de la Galette",
+  "artist": "Pierre-Auguste Renoir",
+  "year": 1876,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Renoir%2C_Pierre-Auguste_-_Dance_at_Le_Moulin_de_la_Galette%2C_1876.jpg/1920px-Renoir%2C_Pierre-Auguste_-_Dance_at_Le_Moulin_de_la_Galette%2C_1876.jpg"
+ },
+ {
+  "title": "A Sunday on La Grande Jatte",
+  "artist": "Georges Seurat",
+  "year": 1884,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/A_Sunday_on_La_Grande_Jatte%2C_Georges_Seurat%2C_1884.jpg/1920px-A_Sunday_on_La_Grande_Jatte%2C_Georges_Seurat%2C_1884.jpg"
+ },
+ {
+  "title": "The Card Players",
+  "artist": "Paul Cézanne",
+  "year": 1892,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Les_Joueurs_de_cartes%2C_par_Paul_C%C3%A9zanne.jpg/1920px-Les_Joueurs_de_cartes%2C_par_Paul_C%C3%A9zanne.jpg"
+ },
+ {
+  "title": "Paris Street; Rainy Day",
+  "artist": "Gustave Caillebotte",
+  "year": 1877,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Gustave_Caillebotte_-_Paris_Street%3B_Rainy_Day_-_Google_Art_Project.jpg/1920px-Gustave_Caillebotte_-_Paris_Street%3B_Rainy_Day_-_Google_Art_Project.jpg"
+ },
+ {
+  "title": "The Child's Bath",
+  "artist": "Mary Cassatt",
+  "year": 1893,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Mary_Cassatt_-_The_Child%27s_Bath_-_Google_Art_Project.jpg/1280px-Mary_Cassatt_-_The_Child%27s_Bath_-_Google_Art_Project.jpg"
+ },
+ {
+  "title": "The Cradle",
+  "artist": "Berthe Morisot",
+  "year": 1872,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Berthe_Morisot_008.jpg/1280px-Berthe_Morisot_008.jpg"
+ },
+ {
+  "title": "A Bar at the Folies-Bergère",
+  "artist": "Édouard Manet",
+  "year": 1882,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/%22Un_Bar_aux_Folies-Berg%C3%A8re%22_by_%C3%89douard_Manet_%281882%29.jpg/1920px-%22Un_Bar_aux_Folies-Berg%C3%A8re%22_by_%C3%89douard_Manet_%281882%29.jpg"
+ },
+ {
+  "title": "The Kiss",
+  "artist": "Gustav Klimt",
+  "year": 1908,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/The_Kiss_-_Gustav_Klimt_-_Google_Cultural_Institute.jpg/1280px-The_Kiss_-_Gustav_Klimt_-_Google_Cultural_Institute.jpg"
+ },
+ {
+  "title": "Portrait of Adele Bloch-Bauer I",
+  "artist": "Gustav Klimt",
+  "year": 1907,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Gustav_Klimt%2C_1907%2C_Adele_Bloch-Bauer_I%2C_Neue_Galerie_New_York.jpg/1920px-Gustav_Klimt%2C_1907%2C_Adele_Bloch-Bauer_I%2C_Neue_Galerie_New_York.jpg"
+ },
+ {
+  "title": "The Great Wave off Kanagawa",
+  "artist": "Katsushika Hokusai",
+  "year": 1831,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Tsunami_by_hokusai_19th_century.jpg/1920px-Tsunami_by_hokusai_19th_century.jpg"
+ },
+ {
+  "title": "Fine Wind, Clear Morning",
+  "artist": "Katsushika Hokusai",
+  "year": 1831,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/%E3%80%8C%E5%AF%8C%E5%B6%BD%E4%B8%89%E5%8D%81%E5%85%AD%E6%99%AF_%E5%87%B1%E9%A2%A8%E5%BF%AB%E6%99%B4%E3%80%8D-South_Wind%2C_Clear_Sky_%28Gaif%C5%AB_kaisei%29%2C_also_known_as_Red_Fuji%2C_from_the_series_Thirty-six_Views_of_Mount_Fuji_%28Fugaku_sanj%C5%ABrokkei%29_MET_DP141062.jpg/1920px-%E3%80%8C%E5%AF%8C%E5%B6%BD%E4%B8%89%E5%8D%81%E5%85%AD%E6%99%AF_%E5%87%B1%E9%A2%A8%E5%BF%AB%E6%99%B4%E3%80%8D-South_Wind%2C_Clear_Sky_%28Gaif%C5%AB_kaisei%29%2C_also_known_as_Red_Fuji%2C_from_the_series_Thirty-six_Views_of_Mount_Fuji_%28Fugaku_sanj%C5%ABrokkei%29_MET_DP141062.jpg"
+ },
+ {
+  "title": "Sudden Shower over Shin-Ōhashi Bridge",
+  "artist": "Utagawa Hiroshige",
+  "year": 1857,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Utagawa_Hiroshige_-_Evening_Shower_at_Atake_and_the_Great_Bridge.jpg/1280px-Utagawa_Hiroshige_-_Evening_Shower_at_Atake_and_the_Great_Bridge.jpg"
+ },
+ {
+  "title": "Plum Park in Kameido",
+  "artist": "Utagawa Hiroshige",
+  "year": 1857,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/De_pruimenboomgaard_te_Kameido-Rijksmuseum_RP-P-1956-743.jpeg/1280px-De_pruimenboomgaard_te_Kameido-Rijksmuseum_RP-P-1956-743.jpeg"
+ },
+ {
+  "title": "Girl with a Pearl Earring",
+  "artist": "Johannes Vermeer",
+  "year": 1665,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/1665_Girl_with_a_Pearl_Earring.jpg/1280px-1665_Girl_with_a_Pearl_Earring.jpg"
+ },
+ {
+  "title": "The Milkmaid",
+  "artist": "Johannes Vermeer",
+  "year": 1658,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Johannes_Vermeer_-_Het_melkmeisje_-_Google_Art_Project.png/1280px-Johannes_Vermeer_-_Het_melkmeisje_-_Google_Art_Project.png"
+ },
+ {
+  "title": "View of Delft",
+  "artist": "Johannes Vermeer",
+  "year": 1661,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Vermeer-view-of-delft.jpg/1920px-Vermeer-view-of-delft.jpg"
+ },
+ {
+  "title": "The Night Watch",
+  "artist": "Rembrandt",
+  "year": 1642,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/La_ronda_de_noche%2C_por_Rembrandt_van_Rijn.jpg/1920px-La_ronda_de_noche%2C_por_Rembrandt_van_Rijn.jpg"
+ },
+ {
+  "title": "Mona Lisa",
+  "artist": "Leonardo da Vinci",
+  "year": 1503,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Mona_Lisa.jpg/1280px-Mona_Lisa.jpg"
+ },
+ {
+  "title": "Lady with an Ermine",
+  "artist": "Leonardo da Vinci",
+  "year": 1490,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Lady_with_an_Ermine_-_Leonardo_da_Vinci_%28adjusted_levels%29.jpg/1280px-Lady_with_an_Ermine_-_Leonardo_da_Vinci_%28adjusted_levels%29.jpg"
+ },
+ {
+  "title": "Wanderer above the Sea of Fog",
+  "artist": "Caspar David Friedrich",
+  "year": 1818,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Caspar_David_Friedrich_-_Wanderer_above_the_Sea_of_Fog.jpeg/1280px-Caspar_David_Friedrich_-_Wanderer_above_the_Sea_of_Fog.jpeg"
+ },
+ {
+  "title": "The Fighting Temeraire",
+  "artist": "J. M. W. Turner",
+  "year": 1839,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/The_Fighting_Temeraire%2C_JMW_Turner%2C_National_Gallery.jpg/1920px-The_Fighting_Temeraire%2C_JMW_Turner%2C_National_Gallery.jpg"
+ },
+ {
+  "title": "Rain, Steam and Speed",
+  "artist": "J. M. W. Turner",
+  "year": 1844,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Rain_Steam_and_Speed_the_Great_Western_Railway.jpg/1920px-Rain_Steam_and_Speed_the_Great_Western_Railway.jpg"
+ },
+ {
+  "title": "The Hay Wain",
+  "artist": "John Constable",
+  "year": 1821,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/John_Constable_-_The_Hay_Wain_%281821%29.jpg/1920px-John_Constable_-_The_Hay_Wain_%281821%29.jpg"
+ },
+ {
+  "title": "Whistler's Mother",
+  "artist": "James McNeill Whistler",
+  "year": 1871,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Whistlers_Mother_high_res.jpg/1920px-Whistlers_Mother_high_res.jpg"
+ },
+ {
+  "title": "Carnation, Lily, Lily, Rose",
+  "artist": "John Singer Sargent",
+  "year": 1886,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/John_Singer_Sargent_-_Carnation%2C_Lily%2C_Lily%2C_Rose_-_Google_Art_Project.jpg/1280px-John_Singer_Sargent_-_Carnation%2C_Lily%2C_Lily%2C_Rose_-_Google_Art_Project.jpg"
+ },
+ {
+  "title": "Madame X",
+  "artist": "John Singer Sargent",
+  "year": 1884,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Madame_X_%28Madame_Pierre_Gautreau%29%2C_John_Singer_Sargent%2C_1884_%28unfree_frame_crop%29.jpg/1280px-Madame_X_%28Madame_Pierre_Gautreau%29%2C_John_Singer_Sargent%2C_1884_%28unfree_frame_crop%29.jpg"
+ },
+ {
+  "title": "The Hunters in the Snow",
+  "artist": "Pieter Bruegel the Elder",
+  "year": 1565,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Pieter_Bruegel_the_Elder_-_Hunters_in_the_Snow_%28Winter%29_-_Google_Art_Project.jpg/1920px-Pieter_Bruegel_the_Elder_-_Hunters_in_the_Snow_%28Winter%29_-_Google_Art_Project.jpg"
+ },
+ {
+  "title": "Netherlandish Proverbs",
+  "artist": "Pieter Bruegel the Elder",
+  "year": 1559,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Pieter_Brueghel_the_Elder_-_The_Dutch_Proverbs_-_Google_Art_Project.jpg/1920px-Pieter_Brueghel_the_Elder_-_The_Dutch_Proverbs_-_Google_Art_Project.jpg"
+ },
+ {
+  "title": "Las Meninas",
+  "artist": "Diego Velázquez",
+  "year": 1656,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Las_Meninas%2C_by_Diego_Vel%C3%A1zquez%2C_from_Prado_in_Google_Earth.jpg/1280px-Las_Meninas%2C_by_Diego_Vel%C3%A1zquez%2C_from_Prado_in_Google_Earth.jpg"
+ },
+ {
+  "title": "Composition VII",
+  "artist": "Wassily Kandinsky",
+  "year": 1913,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Composition_VII_-_Wassily_Kandinsky%2C_GAC.jpg/1920px-Composition_VII_-_Wassily_Kandinsky%2C_GAC.jpg"
+ },
+ {
+  "title": "Tiger in a Tropical Storm",
+  "artist": "Henri Rousseau",
+  "year": 1891,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Surprised-Rousseau.jpg/1920px-Surprised-Rousseau.jpg"
+ },
+ {
+  "title": "Among the Sierra Nevada",
+  "artist": "Albert Bierstadt",
+  "year": 1868,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Bierstadt_-_Among_the_Sierra_Nevada_Mountains_-_1868.jpg/1920px-Bierstadt_-_Among_the_Sierra_Nevada_Mountains_-_1868.jpg"
+ },
+ {
+  "title": "The Oxbow",
+  "artist": "Thomas Cole",
+  "year": 1836,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Cole_Thomas_The_Oxbow_%28The_Connecticut_River_near_Northampton_1836%29.jpg/1920px-Cole_Thomas_The_Oxbow_%28The_Connecticut_River_near_Northampton_1836%29.jpg"
+ },
+ {
+  "title": "Breezing Up",
+  "artist": "Winslow Homer",
+  "year": 1876,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Winslow_Homer_-_Breezing_Up_%28A_Fair_Wind%29_-_Google_Art_Project.jpg/1920px-Winslow_Homer_-_Breezing_Up_%28A_Fair_Wind%29_-_Google_Art_Project.jpg"
+ },
+ {
+  "title": "The Ninth Wave",
+  "artist": "Ivan Aivazovsky",
+  "year": 1850,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Hovhannes_Aivazovsky_-_The_Ninth_Wave_-_Google_Art_Project.jpg/1920px-Hovhannes_Aivazovsky_-_The_Ninth_Wave_-_Google_Art_Project.jpg"
+ },
+ {
+  "title": "Golden Autumn",
+  "artist": "Isaac Levitan",
+  "year": 1895,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Levitan_Zolotaya_Osen.jpg/1920px-Levitan_Zolotaya_Osen.jpg"
+ },
+ {
+  "title": "The Gleaners",
+  "artist": "Jean-François Millet",
+  "year": 1857,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Jean-Fran%C3%A7ois_Millet_-_Gleaners_-_Google_Art_Project_2.jpg/1920px-Jean-Fran%C3%A7ois_Millet_-_Gleaners_-_Google_Art_Project_2.jpg"
+ },
+ {
+  "title": "The Swing",
+  "artist": "Jean-Honoré Fragonard",
+  "year": 1767,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/The_Swing_%28P430%29.jpg/1280px-The_Swing_%28P430%29.jpg"
+ },
+ {
+  "title": "The Arnolfini Portrait",
+  "artist": "Jan van Eyck",
+  "year": 1434,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/The_Arnolfini_portrait_%281434%29.jpg/1280px-The_Arnolfini_portrait_%281434%29.jpg"
+ },
+ {
+  "title": "The Blue Boy",
+  "artist": "Thomas Gainsborough",
+  "year": 1770,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/b/b6/The_Blue_Boy.jpg"
+ },
+ {
+  "title": "American Gothic",
+  "artist": "Grant Wood",
+  "year": 1930,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Grant_Wood_-_American_Gothic_%281930%29.jpg/1280px-Grant_Wood_-_American_Gothic_%281930%29.jpg"
+ },
+ {
+  "title": "There Comes Papa",
+  "artist": "Raja Ravi Varma",
+  "year": 1893,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Raja_Ravi_Varma%2C_There_Comes_Papa_%281893%29.jpg/1280px-Raja_Ravi_Varma%2C_There_Comes_Papa_%281893%29.jpg"
+ },
+ {
+  "title": "Galaxy of Musicians",
+  "artist": "Raja Ravi Varma",
+  "year": 1889,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/f/f6/Raja_Ravi_Varma%2C_Galaxy_of_Musicians.jpg"
+ },
+ {
+  "title": "Shakuntala",
+  "artist": "Raja Ravi Varma",
+  "year": 1870,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Raja_Ravi_Varma_-_Mahabharata_-_Shakuntala.jpg/1280px-Raja_Ravi_Varma_-_Mahabharata_-_Shakuntala.jpg"
+ },
+ {
+  "title": "Three Girls",
+  "artist": "Amrita Sher-Gil",
+  "year": 1935,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Amrita_Sher-Gil_Group_of_Three_Girls.jpg/1280px-Amrita_Sher-Gil_Group_of_Three_Girls.jpg"
+ },
+ {
+  "title": "Poppy Field",
+  "artist": "Claude Monet",
+  "year": 1873,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Claude_Monet_-_Poppy_Field_-_Google_Art_Project.jpg/1920px-Claude_Monet_-_Poppy_Field_-_Google_Art_Project.jpg"
+ },
+ {
+  "title": "The Japanese Footbridge",
+  "artist": "Claude Monet",
+  "year": 1899,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Bridge_Over_a_Pond_of_Water_Lilies%2C_Claude_Monet_1899.jpg/1280px-Bridge_Over_a_Pond_of_Water_Lilies%2C_Claude_Monet_1899.jpg"
+ },
+ {
+  "title": "The Railway",
+  "artist": "Édouard Manet",
+  "year": 1873,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Edouard_Manet_-_Le_Chemin_de_fer_-_Google_Art_Project.jpg/1920px-Edouard_Manet_-_Le_Chemin_de_fer_-_Google_Art_Project.jpg"
+ },
+ {
+  "title": "The Dance Class",
+  "artist": "Edgar Degas",
+  "year": 1874,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Edgar_Degas_The_Dance_Class.jpg/1280px-Edgar_Degas_The_Dance_Class.jpg"
+ },
+ {
+  "title": "Boulevard Montmartre at Night",
+  "artist": "Camille Pissarro",
+  "year": 1897,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Camille_Pissarro%2C_The_Boulevard_Montmartre_at_Night%2C_1897.jpg/1920px-Camille_Pissarro%2C_The_Boulevard_Montmartre_at_Night%2C_1897.jpg"
+ },
+ {
+  "title": "Lady in the Moonlight",
+  "artist": "Raja Ravi Varma",
+  "year": 1889,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/1/11/Raja_Ravi_Varma%2C_Lady_in_the_Moon_Light_%281889%29.jpg"
+ },
+ {
+  "title": "Haldi Grinders",
+  "artist": "Amrita Sher-Gil",
+  "year": 1940,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Haldi_Grinders_1940.jpg/1280px-Haldi_Grinders_1940.jpg"
+ },
+ {
+  "title": "Village Scene",
+  "artist": "Amrita Sher-Gil",
+  "year": 1938,
+  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Amrita_Sher-Gil_Village_Scene_1938_Simla.jpg/1920px-Amrita_Sher-Gil_Village_Scene_1938_Simla.jpg"
+ }
+]

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Under a name written over a photo (a director's tile): dark at the bottom, clear above. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient
+        android:angle="90"
+        android:startColor="#E6000000"
+        android:centerColor="#99000000"
+        android:endColor="#00000000" />
+</shape>

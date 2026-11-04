@@ -91,6 +91,39 @@
          watchlist_this_year: this year's most popular, and best rated, as two chips. -->
     <string-array name="watchlist_languages"></string-array>
     <bool name="watchlist_this_year">true</bool>
+    <!-- watchlist_podcasts: a Podcasts chip after the language chips, from YouTube's popular podcasts for the
+         country. Each plays its newest episode in YouTube; shows with nothing new in 60 days are left out, and
+         with Hindi as the first language, so are shows mostly in another language. -->
+    <bool name="watchlist_podcasts">false</bool>
+    <!-- watchlist_podcast_channels: YouTube channel IDs (UC...) to use instead of YouTube's popular podcasts, for a
+         household that knows what it likes. Each shows its newest full video from the last four months; episodes
+         about politics, religion or astrology are passed over. Find a channel's ID under About, Share channel. -->
+    <string-array name="watchlist_podcast_channels"></string-array>
+    <!-- watchlist_trending: "Trending in <country>" (this week, on the apps you have, IMDb 6.5 and up) and
+         "Trending worldwide" (IMDb's most looked-up titles from the last year). watchlist_world_cinema: the
+         best-rated films not in English or the watchlist languages (IMDb 8 and up, 50,000 votes). -->
+    <bool name="watchlist_trending">false</bool>
+    <bool name="watchlist_world_cinema">false</bool>
+    <!-- watchlist_exclude_genres: IMDb genres (e.g. Horror) that no row shows: searches leave them out, and
+         trending, the directors' films and the watchlist are filtered. -->
+    <string-array name="watchlist_exclude_genres"></string-array>
+    <!-- watchlist_directors: IMDb name IDs (nm...) for a Directors chip. Each director's tile opens their best
+         films (6.5 and up, 500 votes, and not a re-cut), best first; Back returns to the directors. -->
+    <string-array name="watchlist_directors"></string-array>
+    <!-- navigation_sounds: a sound as focus moves, on OK and at a row's end; only while the TV's system sounds
+         are on. navigation_sound_set: "android", Android TV's own (read from /system/media/audio/ui, a sound per
+         direction), or "wood", a small knock bundled here. navigation_sound_volume: 0 to 100, a share of the
+         system-sound volume. -->
+    <bool name="navigation_sounds">true</bool>
+    <string name="navigation_sound_set" translatable="false">android</string>
+    <integer name="navigation_sound_volume">60</integer>
+    <!-- screensaver_gallery: the screensaver shows a painting at a time (res/raw/gallery.json: public-domain
+         masterpieces from Wikimedia Commons, about 1.5 MB each, the next one fetched ahead) instead of the clock. -->
+    <bool name="screensaver_gallery">false</bool>
+    <!-- weather: temperature and sky beside the date and on the clock screensaver, from Open-Meteo.
+         weather_place: a town or city; empty means where the internet connection says the TV is (ipwho.is). -->
+    <bool name="weather">false</bool>
+    <string name="weather_place" translatable="false"></string>
 
     <string-array name="watchlist_services">
         <item>netflix|Netflix|com.netflix.ninja</item>

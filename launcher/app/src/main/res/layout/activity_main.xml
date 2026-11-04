@@ -3,7 +3,30 @@
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FF000000">
+    android:background="#FF140F17">
+
+    <!-- The focused title's colours, blurred over the whole screen like light from a cinema screen (Backdrop).
+         Two layers so one can fade into the next, under a scrim that keeps the clock and the apps readable. -->
+    <ImageView
+        android:id="@+id/backdropA"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:alpha="0"
+        android:importantForAccessibility="no" />
+
+    <ImageView
+        android:id="@+id/backdropB"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:alpha="0"
+        android:importantForAccessibility="no" />
+
+    <View
+        android:id="@+id/backdropScrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
     <!-- Ambient glow in the colour of the focused dock app. -->
     <View
@@ -134,10 +157,15 @@
                             android:includeFontPadding="false"
                             android:visibility="gone" />
 
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
                         <TextClock
                             android:id="@+id/date"
                             android:gravity="left"
-                            android:layout_width="match_parent"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:singleLine="true"
                             android:ellipsize="end"
@@ -149,6 +177,21 @@
                             android:fontVariationSettings="'wght' 400"
                             android:letterSpacing="0.14"
                             android:textAllCaps="true" />
+
+                        <!-- "  ·  18°  Clear" (Weather), when weather is on. -->
+                        <TextView
+                            android:id="@+id/weather"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:singleLine="true"
+                            android:textColor="#A6FFFFFF"
+                            android:textSize="14sp"
+                            android:fontFamily="@font/outfit"
+                            android:fontVariationSettings="'wght' 400"
+                            android:letterSpacing="0.14"
+                            android:textAllCaps="true"
+                            android:visibility="gone" />
+                        </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
@@ -190,19 +233,27 @@
 
         <!-- Watchlist chips (Watchlist, GroupAdapter): Hindi, Continue, Recently added, this year, genres.
              Moving onto one opens its posters in watchPanel below. Hidden until there is a saved list. -->
-        <androidx.recyclerview.widget.RecyclerView
+        <!-- Chips fade out at both edges, which also keeps the focused one clear of the edge when it scrolls. -->
+        <HorizontalScrollView
             android:id="@+id/watchGroups"
             android:layout_width="match_parent"
             android:layout_height="42dp"
             android:layout_marginTop="6dp"
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp"
-            android:clipToPadding="false"
-            android:clipChildren="false"
             android:overScrollMode="never"
             android:scrollbars="none"
+            android:requiresFadingEdge="horizontal"
+            android:fadingEdgeLength="48dp"
             android:descendantFocusability="afterDescendants"
-            android:visibility="gone" />
+            android:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/chipRow"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp" />
+        </HorizontalScrollView>
 
 
 

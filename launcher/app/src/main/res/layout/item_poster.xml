@@ -47,4 +47,23 @@
         android:fontFamily="@font/outfit"
         android:fontVariationSettings="'wght' 600"
         android:singleLine="true" />
+
+    <!-- A director's name over their photo; hidden on posters, which carry their own titles. -->
+    <TextView
+        android:id="@+id/posterLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="28dp"
+        android:paddingBottom="10dp"
+        android:background="@drawable/label_scrim"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:textColor="#FFFFFFFF"
+        android:textSize="14sp"
+        android:fontFamily="@font/outfit"
+        android:fontVariationSettings="'wght' 500"
+        android:visibility="gone" />
 </FrameLayout>

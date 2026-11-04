@@ -1,10 +1,11 @@
 # Just the apps
 
 **Your Hisense Android TV, minus everything that isn't your apps.** It moves without stutter, the home screen
-has no ads, and it opens on something worth watching: new Hindi picks (or your language), this year's best,
-and your IMDb watchlist by genre. Pick a poster and it plays, whichever app has it.
+has no ads, and it opens on something worth watching: new picks in your language, what's trending this week,
+world cinema, the great directors, new episodes of the YouTube shows you like, and your IMDb watchlist by
+genre. Pick a poster and it opens in whichever app has it. When the TV rests, it hangs a painting.
 
-![The stock Hisense home screen with a sponsored row, next to the new home screen: chips for Hindi, Continue, Recently added, 2026 and genres, a row of big posters, and the app row below](docs/before-after.jpg)
+![The stock Hisense home screen with an Apple TV promotion, Shop and Discover tabs and a sponsored row, next to the new home screen: a row of animated films under genre chips, the time and weather at the top, and Netflix, YouTube, Stremio and Prime Video below](docs/before-after.jpg)
 
 ## Get started
 
@@ -38,12 +39,34 @@ the slowest frames from 65 ms to 18 ms. We pressed the same keys before and afte
 frame stats.
 
 **Something to watch, the moment Home opens.** A row of chips sits above your apps, and the first one is
-already open: new, well-liked Hindi films and shows that are streaming on your apps right now, so every one
-plays (pick any language). Then come **Continue** for what you
-opened last, **Recently added** to your IMDb watchlist, **2026** for this year's most popular and **Best of
-2026** for its highest rated, and your watchlist's genres, best rated first. Posters are big enough to read
-from the sofa, with the IMDb rating in the corner. Rest on one for a moment and a card opens with the year,
-running time, country, director and plot.
+already open: new, well-liked films and shows in your language that are streaming on your apps right now, so
+every one plays. It can be one person's own chip instead, named for them, mixing their language with, say,
+new K-dramas and a few films picked for them. The other chips, each optional:
+
+- **Podcasts**: the newest full episode from each YouTube channel you choose (or YouTube's popular podcasts),
+  as cards with the episode's own thumbnail. Episodes about politics, religion or astrology are skipped.
+- **Continue** for what you opened last, and **Recently added** to your IMDb watchlist.
+- **Trending in your country**, this week, on the apps you have, and **Trending worldwide**.
+- **World cinema**: the best-rated films that aren't in English or your languages.
+- **Directors**: a photo for each director you choose; press OK for their best films, Back to return.
+- **This year's** most popular and best rated, and your watchlist's genres, each topped up to at least 24 with
+  IMDb's best in that genre.
+
+Every time Home is pressed, each row is reshuffled with the titles you didn't see last time in front, so it
+never opens the same way twice. Back from an app keeps the order and lands you on the poster you left. A
+genre you never want (horror, say) can be left out of every row. Posters are big enough to read from the
+sofa, with the IMDb rating in the corner, and the one you're on grows a little. Rest on one for a moment and a
+card opens with the year, running time, country, director and plot. Indian films keep the names you know them
+by (*Pyaasa*, not "Thirsty").
+
+**The room takes on the film's colours.** Behind the posters, the screen softly washes in the colours of the
+title you're on, over a deep plum rather than black. The time sits top left with the date and the weather.
+Moving around makes Android TV's own soft sounds, a different one for each direction.
+
+**When the TV rests, it becomes a gallery.** The screensaver hangs one public-domain masterpiece at a time,
+two minutes each, on a wash of its own colours: Monet, Van Gogh, Vermeer, Hokusai, Raja Ravi Varma, Amrita
+Sher-Gil and more, 64 in all, with the name and painter in the corner and the time and weather beside them.
+Nothing moves between paintings, so the TV does almost no work.
 
 **Finding it again is easy.** Open a title and it goes to the front of Continue, so tomorrow it's one press
 away. Press Back from the app and you land on the poster you left.
@@ -104,8 +127,9 @@ Want to see what the watchlist row would show before you start? Run
 - **Packages known to break Hisense TVs are never touched**, including the SmartSense family that sent
   another Hisense model into a recovery screen.
 - **Your apps' dependencies are kept.** If you sideloaded an app, the app you used to install it stays.
-- **The new home screen has no ads, no tracking and no background service.** It only goes online for the
-  watchlist, at most once every 12 hours, and only while the home screen is open.
+- **The new home screen has no ads, no tracking and no background service.** It only goes online for its
+  rows (at most once every 12 hours, while the home screen is open), the weather, posters as they come on
+  screen, and the screensaver's next painting.
 
 ## Keeping it
 
@@ -149,3 +173,8 @@ the row keeps showing the last list it saved.
 The home screen app and the approach come from [cleanyourtv](https://github.com/Gathin23/cleanyourtv) by
 Gathin, under the MIT licence. This project adds the Hisense package list, the watchlist row, and the tools
 that back up, apply in safe groups and put the setup back after updates.
+
+## Support
+
+It's free, and it stays free. If your TV feels new again and your evenings got a little nicer, you can
+[buy me a coffee](https://buymeacoffee.com/youdonthaveto). You don't have to.

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Screensaver as a gallery (ClockDream, Gallery): one painting hung in the middle, on a wash of its own colours,
+     its name and painter at the bottom left, the time and weather at the bottom right. Nothing moves between
+     paintings, so the TV redraws nothing for minutes at a time. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FF0B0A0C">
+
+    <ImageView
+        android:id="@+id/galleryWash"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:alpha="0"
+        android:importantForAccessibility="no" />
+
+    <View
+        android:id="@+id/galleryScrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <FrameLayout
+        android:id="@+id/galleryFrame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingStart="120dp"
+        android:paddingEnd="120dp"
+        android:paddingTop="56dp"
+        android:paddingBottom="132dp"
+        android:clipToPadding="false"
+        android:clipChildren="false">
+
+        <ImageView
+            android:id="@+id/galleryA"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:scaleType="fitXY"
+            android:elevation="24dp"
+            android:alpha="0"
+            android:importantForAccessibility="no" />
+
+        <ImageView
+            android:id="@+id/galleryB"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:scaleType="fitXY"
+            android:elevation="24dp"
+            android:alpha="0"
+            android:importantForAccessibility="no" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/galleryCaption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:layout_marginStart="120dp"
+        android:layout_marginBottom="48dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/galleryTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxWidth="900dp"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:textColor="#E6FFFFFF"
+            android:textSize="22sp"
+            android:fontFamily="@font/outfit"
+            android:fontVariationSettings="'wght' 400" />
+
+        <TextView
+            android:id="@+id/galleryArtist"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:singleLine="true"
+            android:textColor="#99FFFFFF"
+            android:textSize="14sp"
+            android:fontFamily="@font/outfit"
+            android:fontVariationSettings="'wght' 400"
+            android:letterSpacing="0.06" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="120dp"
+        android:layout_marginBottom="48dp"
+        android:gravity="end"
+        android:orientation="vertical">
+
+        <TextClock
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:format12Hour="h:mm"
+            android:format24Hour="HH:mm"
+            android:textColor="#E6FFFFFF"
+            android:textSize="34sp"
+            android:fontFamily="@font/outfit"
+            android:fontVariationSettings="'wght' 200"
+            android:includeFontPadding="false" />
+
+        <TextView
+            android:id="@+id/galleryWeather"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:singleLine="true"
+            android:textColor="#99FFFFFF"
+            android:textSize="13sp"
+            android:fontFamily="@font/outfit"
+            android:letterSpacing="0.14"
+            android:textAllCaps="true" />
+    </LinearLayout>
+</FrameLayout>

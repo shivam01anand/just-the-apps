@@ -73,7 +73,7 @@ import java.util.Set;
 /**
  * tvOS style home: black, a pinned dock row, an app grid, and one glass highlight that springs between tiles.
  */
-public class MainActivity extends Activity implements AppAdapter.TileListener, WatchAdapter.Listener, GroupAdapter.Listener {
+public class MainActivity extends Activity implements AppAdapter.TileListener, WatchAdapter.Listener, Chips.Listener {
 
     /** Tiles per row and dock slots (res/values/config.xml, columns). Set in onCreate. */
     static int COLUMNS = 4;
@@ -89,6 +89,19 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
     private FrameLayout root;
     private GlassView glass;
     private View ambient;
+    /** The backdrop's two layers (Backdrop): the one showing, and the one the next title fades in on. */
+    private ImageView backdropFront, backdropBack;
+    private String backdropId, pendingBackdrop;
+    /** Full on the posters; turned down on the apps, where the app's own glow takes over. */
+    private float backdropLevel = 1f;
+    private final java.util.concurrent.ExecutorService backdropDecoder = java.util.concurrent.Executors.newSingleThreadExecutor();
+    private final Runnable backdropChange = this::loadBackdrop;
+    private TextView weatherLine;
+    private boolean weatherOn;
+    private Sounds sounds;
+    /** When an arrow key last went down: a focus change soon after it is the viewer moving, and gets a note. */
+    private long lastArrowAt;
+    private int lastArrowKey;
     private TextView heroName;
     private int ambientColor = -1;
     private boolean heroShown;
@@ -99,8 +112,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
     /** config.xml or config.json, show_inputs_pill / show_network_pill. */
     private boolean showInputsPill;
     private boolean showNetworkPill;
-    private RecyclerView watchGroups;
-    private GroupAdapter groupAdapter;
+    private android.widget.HorizontalScrollView watchGroups;
+    private Chips chips;
     private RecyclerView watchRow;
     private WatchAdapter watchAdapter;
     private TextView watchInfo;
@@ -117,6 +130,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
     private static String lastGroupLabel;
     /** Home was just pressed (or the launcher just started): open the first chip, Hindi for this household. */
     private static boolean homeFresh = true;
+    /** Each row's current order, kept while Home is left for an app and back; Home itself reshuffles. */
+    private static final java.util.Map<String, List<String>> groupOrder = new java.util.HashMap<>();
+    private boolean reshuffle;
+    private static final android.view.animation.Interpolator CAROUSEL_EASE = new android.view.animation.DecelerateInterpolator(1.6f);
     /** Last focused group and poster, and whether one of them had focus when Home was left. */
     private static int lastPoster = 0;
     private static boolean lastOnGroup;
@@ -211,6 +228,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
         public void run() {
             updateGreeting();
             updateWifiLabel();
+            if (weatherOn) Weather.refreshIfStale(MainActivity.this, MainActivity.this::showWeather);
             handler.postDelayed(this, MINUTE_MS);
         }
     };
@@ -231,7 +249,21 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
         sourcePanelAction = cfg.sourcePanelAction;
 
         root = findViewById(R.id.root);
-        root.setBackgroundColor(cfg.backgroundColor);
+        if (cfg.backgroundColor != 0) {
+            root.setBackgroundColor(cfg.backgroundColor);
+        } else {
+            BitmapDrawable base = new BitmapDrawable(getResources(), Backdrop.base());
+            base.setFilterBitmap(true);
+            root.setBackground(base);
+        }
+        backdropFront = findViewById(R.id.backdropA);
+        backdropBack = findViewById(R.id.backdropB);
+        BitmapDrawable scrim = new BitmapDrawable(getResources(), Backdrop.scrim());
+        scrim.setFilterBitmap(true);
+        findViewById(R.id.backdropScrim).setBackground(scrim);
+        weatherLine = findViewById(R.id.weather);
+        weatherOn = cfg.weather;
+        sounds = new Sounds(this);
         if (cfg.wallpaper != null) showWallpaper(cfg.wallpaper);
         glass = findViewById(R.id.glass);
         ambient = findViewById(R.id.ambient);
@@ -263,10 +295,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
         grid.setAdapter(adapter);
 
         watchGroups = findViewById(R.id.watchGroups);
-        watchGroups.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        watchGroups.setItemAnimator(null);
-        groupAdapter = new GroupAdapter(this);
-        watchGroups.setAdapter(groupAdapter);
+        chips = new Chips(findViewById(R.id.chipRow), this);
         watchInfo = findViewById(R.id.watchInfo);
         watchDetails = findViewById(R.id.watchDetails);
         detailsTitle = findViewById(R.id.detailsTitle);
@@ -277,7 +306,20 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
         watchRow = findViewById(R.id.watchRow);
         // The posters open over the app row, starting right under the chips.
         watchGroups.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> placeWatchPanel());
-        watchRow.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        // A carousel: the focused poster stays at the first slot and the posters move under it. At the end of
+        // the row there is nothing left to move in, so focus walks on to the last posters.
+        watchRow.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false) {
+            @Override
+            public boolean requestChildRectangleOnScreen(@NonNull RecyclerView parent, @NonNull View child,
+                                                         @NonNull Rect rect, boolean immediate, boolean focusedChildVisible) {
+                RecyclerView.LayoutParams lp = (RecyclerView.LayoutParams) child.getLayoutParams();
+                int dx = getDecoratedLeft(child) - lp.leftMargin - getPaddingLeft();
+                if (dx == 0) return false;
+                if (immediate || reducedMotion) parent.scrollBy(dx, 0);
+                else parent.smoothScrollBy(dx, 0, CAROUSEL_EASE, 280);
+                return true;
+            }
+        });
         watchRow.setItemAnimator(null);
         watchAdapter = new WatchAdapter(this, this, reducedMotion);
         watchRow.setAdapter(watchAdapter);
@@ -445,6 +487,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
         super.onNewIntent(intent);
         if (intent == null || !intent.hasCategory(Intent.CATEGORY_HOME)) return;
         homeFresh = true;
+        openDirector = null;   // a fresh Home shows the directors again, not the last one opened
         grid.scrollToPosition(0);
         lastFocused = 0;
         lastOnWatch = false;
@@ -474,6 +517,19 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
         updateInputsButton();
         handler.postDelayed(minuteTick, MINUTE_MS);
         handler.postDelayed(watchRefresh, 5_000);
+        sounds.refresh(this);
+        Gallery.prepare(this);   // the screensaver's next painting, ahead of time; nothing if it is there already
+        if (weatherOn) {
+            showWeather();
+            Weather.refreshIfStale(this, this::showWeather);
+        }
+    }
+
+    /** "  ·  18°  Clear" after the date; nothing until there is a reading. */
+    private void showWeather() {
+        String w = Weather.saved(this);
+        weatherLine.setText(w != null ? "  ·  " + w : "");
+        weatherLine.setVisibility(w != null ? View.VISIBLE : View.GONE);
     }
 
     /** Rebuilds the tiles (and the module cards), then puts focus back where it was. */
@@ -532,8 +588,14 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
         final int returnSlot = lastFocused;
         grid.post(() -> {
             if (homeFresh && watchShown()) {
-                // Fresh Home: the first chip, already open. Back from an app keeps where you were instead.
+                // Fresh Home: every row shuffled, with what was not in front last time now in front, and the first
+                // chip open. Back from an app keeps the order and the poster you left instead.
                 homeFresh = false;
+                if (data != null) {
+                    reshuffle = true;
+                    lastGroupLabel = null;
+                    showWatchlist(data);
+                }
                 lastGroupLabel = groups.get(0).label;
                 focusGroup(0);
             } else if (lastOnWatch && watchShown()) {
@@ -570,6 +632,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        backdropDecoder.shutdownNow();
+        sounds.release();
         ConnectivityManager cm = getSystemService(ConnectivityManager.class);
         TvInputManager tim = (TvInputManager) getSystemService(TV_INPUT_SERVICE);
         if (tim != null) tim.unregisterCallback(inputCallback);
@@ -579,15 +643,49 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
         }
     }
 
+    /**
+     * Notes for the viewer's own moves and presses only: a focus change Home makes by itself (coming back from
+     * an app, a fresh Home) stays silent. OK on anything that opens, a poster, a tile, a button, chimes; OK on
+     * a chip, which only shows what is already below it, does not.
+     */
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent e) {
+        if (e.getAction() == KeyEvent.ACTION_DOWN) {
+            switch (e.getKeyCode()) {
+                case KeyEvent.KEYCODE_DPAD_UP:
+                case KeyEvent.KEYCODE_DPAD_DOWN:
+                case KeyEvent.KEYCODE_DPAD_LEFT:
+                case KeyEvent.KEYCODE_DPAD_RIGHT:
+                    lastArrowAt = android.os.SystemClock.uptimeMillis();
+                    lastArrowKey = e.getKeyCode();
+                    break;
+                case KeyEvent.KEYCODE_DPAD_CENTER:
+                case KeyEvent.KEYCODE_ENTER:
+                    View f = getCurrentFocus();
+                    if (e.getRepeatCount() == 0 && f != null && f.getParent() != findViewById(R.id.chipRow)) sounds.select();
+                    break;
+                default:
+                    break;
+            }
+        }
+        return super.dispatchKeyEvent(e);
+    }
+
+    private boolean byArrow() {
+        return android.os.SystemClock.uptimeMillis() - lastArrowAt < 300;
+    }
+
     @Override
     public void onBackPressed() {
-        // Home screen: Back goes nowhere.
+        // Home screen: Back goes nowhere, except out of a director's films.
+        if (closeDirector()) sounds.back();
     }
 
     // ---- glass highlight -------------------------------------------------------------------------
 
     @Override
     public void onTileFocused(int position, View card) {
+        if (byArrow()) sounds.move(lastArrowKey);
         lastOnWatch = false;
         lastOnGroup = false;
         if (!groups.isEmpty()) setWatchOpen(position < COLUMNS);
@@ -656,6 +754,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
 
     /** The top shelf: a name in large type above the dock, over a glow in the given colour. */
     private void showShelf(String label, int color, float dockTopInRoot) {
+        dimBackdrop(true);
         float y = dockTopInRoot - 14 * density - 26 * density - heroName.getHeight();
         boolean changed = !label.contentEquals(heroName.getText());
 
@@ -726,6 +825,48 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
         BitmapDrawable drawable = new BitmapDrawable(getResources(), bmp);
         drawable.setGravity(Gravity.FILL);
         ambient.setBackground(drawable);
+    }
+
+    /** The room takes on a title's colours, once focus has rested a moment, so fast scrolling stays smooth. */
+    private void backdropFor(Watchlist.Item it) {
+        if (it == null) return;
+        pendingBackdrop = it.imdb;
+        handler.removeCallbacks(backdropChange);
+        handler.postDelayed(backdropChange, reducedMotion ? 0 : 180);
+    }
+
+    private void loadBackdrop() {
+        final String id = pendingBackdrop;
+        if (id == null || id.equals(backdropId)) return;
+        final java.io.File poster = Watchlist.poster(this, id);
+        backdropDecoder.execute(() -> {
+            Bitmap b = Backdrop.blurred(poster);
+            if (b != null) handler.post(() -> {
+                if (id.equals(pendingBackdrop)) showBackdrop(id, b);
+            });
+        });
+    }
+
+    private void showBackdrop(String id, Bitmap b) {
+        backdropId = id;
+        ImageView in = backdropBack, out = backdropFront;
+        BitmapDrawable d = new BitmapDrawable(getResources(), b);
+        d.setFilterBitmap(true);
+        in.setImageDrawable(d);
+        in.animate().cancel();
+        out.animate().cancel();
+        long ms = reducedMotion ? 150 : 700;
+        in.animate().alpha(backdropLevel).setDuration(ms).start();
+        out.animate().alpha(0f).setDuration(ms).start();
+        backdropFront = in;
+        backdropBack = out;
+    }
+
+    private void dimBackdrop(boolean dim) {
+        float level = dim ? 0.4f : 1f;
+        if (level == backdropLevel) return;
+        backdropLevel = level;
+        if (backdropId != null) backdropFront.animate().alpha(level).setDuration(reducedMotion ? 120 : 400).start();
     }
 
     private void hideHero() {
@@ -805,8 +946,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
         data = d;
         boolean hadFocus = watchGroups.hasFocus() || watchRow.hasFocus();
         int keepPoster = lastPoster;
-        groups = Watchlist.groups(d);
-        groupAdapter.setGroups(groups);
+        groups = Watchlist.arrange(this, Watchlist.groups(d), groupOrder, reshuffle);
+        reshuffle = false;
+        chips.setGroups(groups);
         boolean any = !groups.isEmpty();
         watchGroups.setVisibility(any ? View.VISIBLE : View.GONE);
         greeting.setVisibility(any ? View.GONE : View.VISIBLE);   // its line is the posters' room
@@ -816,7 +958,15 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
         lastGroup = 0;
         for (int i = 0; i < groups.size(); i++) if (groups.get(i).label.equals(lastGroupLabel)) lastGroup = i;
         shownGroup = -1;
+        String keepDirector = openDirector;
         showGroup(lastGroup);
+        for (Watchlist.Item it : groups.get(lastGroup).items) {
+            if (it.imdb.equals(keepDirector)) {
+                openDirector = keepDirector;
+                watchAdapter.setItems(it.works);
+                chips.setLabel(lastGroup, groups.get(lastGroup).label + "  ›  " + it.title);
+            }
+        }
         // Continue just put the opened title first, so its old position would point at a different one.
         boolean continueMoved = "Continue".equals(lastGroupLabel);
         lastPoster = continueMoved ? 0 : Math.min(keepPoster, watchAdapter.getItemCount() - 1);
@@ -844,8 +994,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
     /** Puts a group's posters in the row; its chip stays lit while focus is on them. */
     private void showGroup(int position) {
         if (position == shownGroup) return;
+        if (openDirector != null && shownGroup >= 0 && shownGroup < groups.size()) chips.setLabel(shownGroup, groups.get(shownGroup).label);
+        openDirector = null;
         shownGroup = position;
-        groupAdapter.setSelected(position);
+        chips.setSelected(position);
         watchAdapter.setItems(groups.get(position).items);
         watchRow.scrollToPosition(0);
         lastPoster = 0;
@@ -883,17 +1035,33 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
             return;
         }
         final int pos = Math.max(0, Math.min(position, groups.size() - 1));
-        RecyclerView.ViewHolder vh = watchGroups.findViewHolderForAdapterPosition(pos);
-        if (vh != null) {
-            if (vh.itemView.isFocused()) onGroupFocused(pos);
-            else vh.itemView.requestFocus();
-            return;
+        View chip = chips.chip(pos);
+        if (chip == null) return;
+        // The scroll view brings the chip on screen as it takes focus, clear of the faded edge.
+        if (chip.isFocused()) onGroupFocused(pos);
+        else chip.requestFocus();
+    }
+
+    /**
+     * Scrolls a horizontal row until the item is fully on screen with some room beside it, then returns its
+     * holder (null if the row has not been laid out). scrollBy lays out what it reveals there and then;
+     * scrollToPosition only does so on the next layout, and on the TV focus fell out of the chip row to
+     * Settings in between, from where no arrow key led back (Right past the last chip on screen).
+     */
+    private static RecyclerView.ViewHolder bringIntoView(RecyclerView rv, int pos, int room) {
+        LinearLayoutManager lm = (LinearLayoutManager) rv.getLayoutManager();
+        int left = rv.getPaddingLeft() + room, right = rv.getWidth() - rv.getPaddingRight() - room;
+        for (int i = 0; i < 50 && rv.getWidth() > 0; i++) {
+            View v = lm.findViewByPosition(pos);
+            int dx;
+            if (v == null) dx = (pos > lm.findLastVisibleItemPosition() ? 1 : -1) * rv.getWidth() / 2;
+            else if (v.getRight() > right) dx = v.getRight() - right;
+            else if (v.getLeft() < left && pos > 0) dx = v.getLeft() - left;
+            else break;
+            if (!rv.canScrollHorizontally(dx > 0 ? 1 : -1)) break;
+            rv.scrollBy(dx, 0);
         }
-        watchGroups.scrollToPosition(pos);
-        watchGroups.post(() -> {
-            RecyclerView.ViewHolder h = watchGroups.findViewHolderForAdapterPosition(pos);
-            if (h != null) h.itemView.requestFocus();
-        });
+        return rv.findViewHolderForAdapterPosition(pos);
     }
 
     private void focusPoster(int position) {
@@ -904,7 +1072,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
         }
         setWatchOpen(true);   // an INVISIBLE row cannot take focus
         final int pos = Math.max(0, Math.min(position, count - 1));
+        // The row's own keyline scroll moves it once focus lands; only a poster off the row needs bringing in first.
         RecyclerView.ViewHolder vh = watchRow.findViewHolderForAdapterPosition(pos);
+        if (vh == null) vh = bringIntoView(watchRow, pos, 0);
         if (vh != null) {
             // Already focused (e.g. back from an app): no focus change fires, so update the info line by hand.
             if (vh.itemView.isFocused()) onPosterFocused(pos, watchAdapter.itemAt(pos));
@@ -920,6 +1090,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
 
     @Override
     public void onGroupFocused(int position) {
+        if (byArrow()) sounds.move(lastArrowKey);
         lastGroup = position;
         lastGroupLabel = groups.get(position).label;
         lastOnGroup = true;
@@ -928,6 +1099,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
         quietShelf();
         setWatchOpen(true);
         showGroup(position);
+        dimBackdrop(false);
+        List<Watchlist.Item> first = groups.get(position).items;
+        if (!first.isEmpty()) backdropFor(first.get(0));
         watchInfo.setText("");   // the chip already says how many; the posters do the talking
     }
 
@@ -944,9 +1118,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
             // find nothing in a horizontal row that has scrolled near its end and leave focus stuck.
             case KeyEvent.KEYCODE_DPAD_LEFT:
                 if (position > 0) focusGroup(position - 1);
+                else sounds.edge();
                 return true;
             case KeyEvent.KEYCODE_DPAD_RIGHT:
                 if (position < groups.size() - 1) focusGroup(position + 1);
+                else sounds.edge();
                 return true;
             default:
                 return false;
@@ -955,6 +1131,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
 
     @Override
     public void onPosterFocused(int position, Watchlist.Item item) {
+        if (byArrow()) sounds.move(lastArrowKey);
         lastPoster = position;
         lastOnWatch = true;
         lastOnGroup = false;
@@ -962,6 +1139,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
         setWatchOpen(true);
         watchInfo.setText(posterSummary(item));
         watchGlow(watchAdapter.posterColor(item.imdb));
+        dimBackdrop(false);
+        backdropFor(item);
         detailsItem = item;
         handler.removeCallbacks(showDetails);
         handler.postDelayed(showDetails, DETAILS_DELAY_MS);
@@ -1006,9 +1185,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
         if (watchOpen) watchInfo.animate().alpha(1f).setDuration(120).start();
     }
 
-    /** "2024  ·  1h 28m  ·  United States, Mexico  ·  IMDb 7.5 (1.8K)" */
+    /** "2024  ·  1h 28m  ·  United States, Mexico  ·  IMDb 7.5 (1.8K)", or for a podcast "The Deshbhakt  ·  2 days ago" */
     private static String detailsMetaLine(Watchlist.Item it) {
         List<String> parts = new ArrayList<>();
+        if (it.subtitle != null) parts.add(it.subtitle);
+        if (it.published > 0) parts.add(ago(it.published));
         if (it.year > 0) parts.add(String.valueOf(it.year));
         if (it.runtimeMin > 0) parts.add(it.runtimeMin >= 60 ? (it.runtimeMin / 60) + "h " + (it.runtimeMin % 60) + "m" : it.runtimeMin + "m");
         if (!it.countries.isEmpty()) parts.add(TextUtils.join(", ", it.countries.subList(0, Math.min(2, it.countries.size()))));
@@ -1021,9 +1202,46 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
         return TextUtils.join("  ·  ", parts);
     }
 
+    /** "today", "yesterday", "5 days ago": when a podcast episode came out. */
+    private static String ago(long time) {
+        long days = (System.currentTimeMillis() - time) / (24 * 60 * 60 * 1000L);
+        return days <= 0 ? "today" : days == 1 ? "yesterday" : days + " days ago";
+    }
+
+
+    /** The director whose films are in the row (OK on their tile), or null; Back returns to the directors. */
+    private static String openDirector;
+    private static int directorReturn;
+
+    private void openDirector(Watchlist.Item director) {
+        openDirector = director.imdb;
+        directorReturn = lastPoster;
+        hideDetails();
+        watchAdapter.setItems(director.works);
+        watchRow.scrollToPosition(0);
+        lastPoster = 0;
+        chips.setLabel(shownGroup, groups.get(shownGroup).label + "  ›  " + director.title);
+        focusPoster(0);
+    }
+
+    /** Back from a director's films to the directors, on the one that was opened. False if none was open. */
+    private boolean closeDirector() {
+        if (openDirector == null) return false;
+        openDirector = null;
+        if (shownGroup < 0 || shownGroup >= groups.size()) return true;
+        chips.setLabel(shownGroup, groups.get(shownGroup).label);
+        hideDetails();
+        watchAdapter.setItems(groups.get(shownGroup).items);
+        focusPoster(directorReturn);
+        return true;
+    }
 
     @Override
     public void onPosterClicked(Watchlist.Item item) {
+        if (Watchlist.DIRECTOR.equals(item.type)) {
+            openDirector(item);
+            return;
+        }
         // Into Continue first (a small file, no network), so it is there to find when Home comes back.
         Watchlist.remember(this, item);
         if (data != null) {
@@ -1033,7 +1251,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
             data = new Watchlist.Data(data.watchlist, data.collections, h);
             historyChanged = true;
         }
-        Watchlist.open(this, item);
+        Watchlist.placeThenOpen(this, item);
     }
 
     @Override
@@ -1048,9 +1266,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
             // One poster per press, for the same reason as the chips.
             case KeyEvent.KEYCODE_DPAD_LEFT:
                 if (position > 0) focusPoster(position - 1);
+                else sounds.edge();
                 return true;
             case KeyEvent.KEYCODE_DPAD_RIGHT:
                 if (position < watchAdapter.getItemCount() - 1) focusPoster(position + 1);
+                else sounds.edge();
                 return true;
             default:
                 return false;
@@ -1064,6 +1284,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
         if (it.year > 0) meta.append(it.year);
         if (it.rating > 0) meta.append(meta.length() > 0 ? "  ·  " : "").append(String.format(Locale.ROOT, "IMDb %.1f", it.rating));
         if (!it.genres.isEmpty()) meta.append("  ·  ").append(TextUtils.join(", ", it.genres.subList(0, Math.min(2, it.genres.size()))));
+        if (it.subtitle != null) meta.append(meta.length() > 0 ? "  ·  " : "").append(it.subtitle);
         SpannableString s = new SpannableString(it.title + "    " + meta);
         s.setSpan(new ForegroundColorSpan(0x99FFFFFF), it.title.length(), s.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         return s;
