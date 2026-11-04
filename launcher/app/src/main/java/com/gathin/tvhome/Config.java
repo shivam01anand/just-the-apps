@@ -77,6 +77,8 @@ final class Config {
      * watchlistPersonalTitles (IMDb IDs: films chosen for them) at a time. Empty: the first chip is the language.
      */
     final String watchlistPersonalName;
+    /** A Letterboxd username whose public watchlist joins the IMDb one in the same rows. */
+    final String watchlistLetterboxdUser;
     /** The screensaver as a gallery of public-domain paintings (Gallery), instead of the drifting clock. */
     final boolean screensaverGallery;
     /** IMDb genres no row ever shows ("Horror"), from searches, trending, directors and the watchlist alike. */
@@ -108,7 +110,7 @@ final class Config {
                    boolean weather, String weatherPlace, String watchlistPersonalName,
                    List<String> watchlistPersonalMix, List<String> watchlistPersonalTitles, List<String> watchlistDirectors,
                    boolean navigationSounds, int navigationSoundVolume, String navigationSoundSet,
-                   List<String> watchlistExcludeGenres, boolean screensaverGallery) {
+                   List<String> watchlistExcludeGenres, boolean screensaverGallery, String watchlistLetterboxdUser) {
         this.dockApps = Collections.unmodifiableList(dockApps);
         this.hiddenApps = Collections.unmodifiableList(hiddenApps);
         this.liveTvPackage = liveTvPackage;
@@ -148,6 +150,7 @@ final class Config {
         this.navigationSoundSet = navigationSoundSet;
         this.watchlistExcludeGenres = Collections.unmodifiableList(watchlistExcludeGenres);
         this.screensaverGallery = screensaverGallery;
+        this.watchlistLetterboxdUser = watchlistLetterboxdUser;
     }
 
     /** The folder the theme tools push into; null when external storage is unavailable. */
@@ -195,6 +198,7 @@ final class Config {
         String soundSet = res.getString(R.string.navigation_sound_set);
         List<String> excludeGenres = new ArrayList<>(Arrays.asList(res.getStringArray(R.array.watchlist_exclude_genres)));
         boolean gallery = res.getBoolean(R.bool.screensaver_gallery);
+        String letterboxd = res.getString(R.string.watchlist_letterboxd_user).trim();
 
         File dir = dir(ctx);
         File file = dir != null ? new File(dir, FILE_NAME) : null;
@@ -238,6 +242,7 @@ final class Config {
             soundSet = string(json, "navigation_sound_set", soundSet);
             excludeGenres = stringList(json, "watchlist_exclude_genres", excludeGenres);
             gallery = bool(json, "screensaver_gallery", gallery);
+            letterboxd = string(json, "watchlist_letterboxd_user", letterboxd);
         }
         File wallpaper = dir != null ? new File(dir, WALLPAPER_NAME) : null;
         if (wallpaper != null && !(wallpaper.isFile() && wallpaper.length() > 0)) wallpaper = null;
@@ -249,7 +254,7 @@ final class Config {
                 vpn, homeSettings, background, wallpaper, applied,
                 inputsPill, networkPill, imdbUser, country, services, languages, thisYear, podcasts,
                 podcastChannels, trending, worldCinema, weather, weatherPlace, personalName, personalMix, personalTitles, directors,
-                sounds, soundVolume, soundSet, excludeGenres, gallery);
+                sounds, soundVolume, soundSet, excludeGenres, gallery, letterboxd);
     }
 
     /** Reads and parses the overlay; any problem means "no overlay", never a crash on the home screen. */

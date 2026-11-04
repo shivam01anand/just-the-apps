@@ -261,7 +261,7 @@ final class Watchlist {
     /** The row shows when there is an IMDb user or any collection (config.xml, overlaid by config.json). */
     static boolean enabled(Context c) {
         Config cfg = Config.load(c);
-        return !cfg.watchlistImdbUser.isEmpty() || !cfg.watchlistLanguages.isEmpty() || cfg.watchlistThisYear
+        return !cfg.watchlistImdbUser.isEmpty() || !cfg.watchlistLetterboxdUser.isEmpty() || !cfg.watchlistLanguages.isEmpty() || cfg.watchlistThisYear
                 || cfg.watchlistPodcasts || cfg.watchlistTrending || cfg.watchlistWorldCinema || !cfg.watchlistDirectors.isEmpty();
     }
 
@@ -405,7 +405,7 @@ final class Watchlist {
                 + cfg.watchlistLanguages + "|" + cfg.watchlistThisYear + "|" + cfg.watchlistPodcasts + "|"
                 + cfg.watchlistPodcastChannels + "|" + cfg.watchlistTrending + "|" + cfg.watchlistWorldCinema + "|"
                 + cfg.watchlistPersonalName + "|" + cfg.watchlistPersonalMix + "|" + cfg.watchlistPersonalTitles + "|"
-                + cfg.watchlistDirectors + "|" + cfg.watchlistExcludeGenres;
+                + cfg.watchlistDirectors + "|" + cfg.watchlistExcludeGenres + "|" + cfg.watchlistLetterboxdUser;
         boolean outdated = !want.equals(prefs.getString("built", ""));
         // A failed try waits RETRY_MS, but only for the same settings: a try by the version before an update,
         // minutes earlier, held the podcasts back for half an hour after one.
@@ -450,6 +450,16 @@ final class Watchlist {
         Placer placer = new Placer(c, saved, services, cfg.watchlistCountry, servicesChanged);
         skipGenres = new java.util.HashSet<>(cfg.watchlistExcludeGenres);
         List<Item> watchlist = cfg.watchlistImdbUser.isEmpty() ? new ArrayList<>() : fetchImdbWatchlist(cfg.watchlistImdbUser);
+        if (!cfg.watchlistLetterboxdUser.isEmpty()) {
+            // After the IMDb list, the Letterboxd films it doesn't already have. A Letterboxd hiccup keeps the rest.
+            java.util.Set<String> have = new java.util.HashSet<>();
+            for (Item it : watchlist) have.add(it.imdb);
+            try {
+                for (Item it : fetchLetterboxdWatchlist(c, cfg.watchlistLetterboxdUser)) if (have.add(it.imdb)) watchlist.add(it);
+            } catch (IOException | JSONException | RuntimeException e) {
+                Log.w(TAG, "letterboxd watchlist failed", e);
+            }
+        }
         watchlist.removeIf(Watchlist::unwanted);
         for (Item it : watchlist) placer.place(it);
 
@@ -739,6 +749,76 @@ final class Watchlist {
             if (it != null) out.add(it);   // a list entry that is not a title (person, image) is skipped
         }
         return out;
+    }
+
+    /** Letterboxd watchlist pages read per refresh; at 28 films a page, about the 250 the IMDb list allows. */
+    private static final int LETTERBOXD_PAGES = 9;
+    private static final java.util.regex.Pattern LETTERBOXD_FILM = java.util.regex.Pattern.compile(
+            "data-item-slug=\"([^\"]+)\"[^>]*?data-item-name=\"([^\"]+)\"|data-item-name=\"([^\"]+)\"[^>]*?data-item-slug=\"([^\"]+)\"");
+
+    /**
+     * A public Letterboxd watchlist, in its own order. Letterboxd has no open API, so this reads the watchlist's
+     * pages (the films' names and years are on them) and finds each film on IMDb by name and year, once: the
+     * match is saved, so later refreshes only look up films added since.
+     */
+    private static List<Item> fetchLetterboxdWatchlist(Context c, String user) throws IOException, JSONException {
+        File cacheFile = new File(dir(c), "letterboxd.json");
+        JSONObject cache = new JSONObject();
+        try (InputStream in = cacheFile.exists() ? new FileInputStream(cacheFile) : null) {
+            if (in != null) cache = new JSONObject(new String(readAll(in), StandardCharsets.UTF_8));
+        } catch (Exception ignored) {
+            // an unreadable cache just means looking the films up again
+        }
+        List<String> ids = new ArrayList<>();
+        java.util.Set<String> slugs = new java.util.HashSet<>();
+        for (int page = 1; page <= LETTERBOXD_PAGES; page++) {
+            String html = get("https://letterboxd.com/" + Uri.encode(user) + "/watchlist/page/" + page + "/");
+            java.util.regex.Matcher m = LETTERBOXD_FILM.matcher(html);
+            int found = 0;
+            while (m.find()) {
+                String slug = m.group(1) != null ? m.group(1) : m.group(4);
+                String name = android.text.Html.fromHtml(m.group(1) != null ? m.group(2) : m.group(3),
+                        android.text.Html.FROM_HTML_MODE_LEGACY).toString();
+                if (!slugs.add(slug)) continue;   // each film appears more than once in the page's markup
+                found++;
+                String id = cache.optString(slug, null);
+                if (id == null) {
+                    id = imdbIdFor(name);
+                    cache.put(slug, id);
+                }
+                if (!id.isEmpty()) ids.add(id);
+            }
+            if (found == 0) break;   // past the last page
+        }
+        try (OutputStream out = new FileOutputStream(cacheFile)) {
+            out.write(cache.toString().getBytes(StandardCharsets.UTF_8));
+        }
+        List<Item> out = new ArrayList<>();
+        for (int i = 0; i < ids.size(); i += 100) out.addAll(imdbTitles(ids.subList(i, Math.min(ids.size(), i + 100))));
+        return out;
+    }
+
+    private static final java.util.regex.Pattern NAME_YEAR = java.util.regex.Pattern.compile("^(.*) \\((\\d{4})\\)$");
+
+    /** "Black Bag (2025)" to its IMDb ID through IMDb's own search suggestions, matching the year; "" if none. */
+    private static String imdbIdFor(String nameAndYear) {
+        java.util.regex.Matcher m = NAME_YEAR.matcher(nameAndYear);
+        boolean dated = m.matches();
+        String title = dated ? m.group(1) : nameAndYear;
+        int year = dated ? Integer.parseInt(m.group(2)) : 0;
+        try {
+            String q = title.toLowerCase(java.util.Locale.ROOT);
+            if (q.length() > 60) q = q.substring(0, 60);
+            JSONArray d = new JSONObject(get("https://v3.sg.media-imdb.com/suggestion/x/" + Uri.encode(q) + ".json")).optJSONArray("d");
+            for (int i = 0; d != null && i < d.length(); i++) {
+                JSONObject x = d.getJSONObject(i);
+                if (!x.optString("id").startsWith("tt")) continue;
+                if (year == 0 || Math.abs(x.optInt("y") - year) <= 1) return x.optString("id");
+            }
+        } catch (IOException | JSONException e) {
+            return "";
+        }
+        return "";
     }
 
     /** IMDb's advanced search, as on imdb.com/search/title. */

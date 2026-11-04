@@ -86,6 +86,9 @@
          none of them opens in Stremio when it is installed. -->
     <string name="watchlist_imdb_user" translatable="false"></string>
     <string name="watchlist_country" translatable="false">IN</string>
+    <!-- watchlist_letterboxd_user: a Letterboxd username; its public watchlist joins the IMDb one (up to about
+         250 films), each film matched to IMDb by name and year once and then remembered. -->
+    <string name="watchlist_letterboxd_user" translatable="false"></string>
     <!-- Collections beyond the watchlist. watchlist_languages: language codes (e.g. hi, ta, ml) that each get a
          chip of new, well-liked titles in that language, placed first; the first chip is open when Home appears.
          watchlist_this_year: this year's most popular, and best rated, as two chips. -->

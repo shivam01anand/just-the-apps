@@ -2,8 +2,8 @@
 
 **Your Hisense Android TV, minus everything that isn't your apps.** It moves without stutter, the home screen
 has no ads, and it opens on something worth watching: new picks in your language, what's trending this week,
-world cinema, the great directors, new episodes of the YouTube shows you like, and your IMDb watchlist by
-genre. Pick a poster and it opens in whichever app has it. When the TV rests, it hangs a painting.
+world cinema, the great directors, new episodes of the YouTube shows you like, and your IMDb or Letterboxd
+watchlist by genre. Pick a poster and it opens in whichever app has it. When the TV rests, it hangs a painting.
 
 ![The stock Hisense home screen with an Apple TV promotion, Shop and Discover tabs and a sponsored row, next to the new home screen: a row of animated films under genre chips, the time and weather at the top, and Netflix, YouTube, Stremio and Prime Video below](docs/before-after.jpg)
 
@@ -45,7 +45,7 @@ new K-dramas and a few films picked for them. The other chips, each optional:
 
 - **Podcasts**: the newest full episode from each YouTube channel you choose (or YouTube's popular podcasts),
   as cards with the episode's own thumbnail. Episodes about politics, religion or astrology are skipped.
-- **Continue** for what you opened last, and **Recently added** to your IMDb watchlist.
+- **Continue** for what you opened last, and **Recently added** to your watchlist: IMDb, Letterboxd or both.
 - **Trending in your country**, this week, on the apps you have, and **Trending worldwide**.
 - **World cinema**: the best-rated films that aren't in English or your languages.
 - **Directors**: a photo for each director you choose; press OK for their best films, Back to return.

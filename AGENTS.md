@@ -64,7 +64,8 @@ One short message, as a checklist they can answer in a line:
 
 - Which apps do you actually use?
 - Is a set-top box, console or anything else plugged in by HDMI?
-- Do you keep a watchlist on IMDb? If so, paste the share link (IMDb, Your watchlist, Share). It must be public.
+- Do you keep a watchlist on IMDb or Letterboxd? If so, paste the IMDb share link (Your watchlist, Share) or
+  your Letterboxd username. It must be public.
 - Which languages does the household watch in, besides English? (Each gets a chip of new, well-liked titles;
   the first is open when Home appears, so put the main viewer's language first.)
 - Do you use Stremio?
@@ -105,7 +106,9 @@ Run `tools/backup.sh`. Change nothing until it has succeeded.
   `watchlist_languages` to their language codes in order (e.g. `["hi"]`); `watchlist_this_year` (true by
   default) adds this year's most popular and best rated. If they gave an IMDb link, run
   `tools/watchlist-preview.py "<link>"`, tell them what it found ("of your 239 titles, 16 are on Netflix, 21
-  on Prime Video and the rest open in Stremio"), and add `watchlist_imdb_user` and `watchlist_country`.
+  on Prime Video and the rest open in Stremio"), and add `watchlist_imdb_user` and `watchlist_country`. A
+  Letterboxd user instead or as well: put their username in `watchlist_letterboxd_user` (the watchlist must
+  be public); its films join the IMDb ones.
 - Offer the extras in one checklist, and add the ones they want (every key is described in
   `launcher/app/src/main/res/values/config.xml`):
   - `watchlist_podcasts`: a Podcasts chip. Ask which YouTube shows they like and put the channels' IDs (UC...)
