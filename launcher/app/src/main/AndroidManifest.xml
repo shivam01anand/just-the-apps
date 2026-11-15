@@ -114,6 +114,16 @@
             </intent-filter>
         </service>
 
+        <!-- The screensaver's mode (masters, mix, own) from tools/own-paintings.sh; adb's shell holds DUMP, apps don't. -->
+        <receiver
+            android:name=".GalleryModeReceiver"
+            android:exported="true"
+            android:permission="android.permission.DUMP">
+            <intent-filter>
+                <action android:name="com.gathin.tvhome.GALLERY_MODE" />
+            </intent-filter>
+        </receiver>
+
         <!-- The remote's Input button (KEYCODE_TV) opens the input switcher; see InputKeyService. -->
         <service
             android:name=".InputKeyService"

@@ -695,8 +695,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
 
     @Override
     public void onBackPressed() {
-        // Home screen: Back goes nowhere, except out of a director's films.
+        // Home screen: Back closes a director's films; with nothing open it goes to "Who's watching?" when there are
+        // profiles, and nowhere otherwise.
         if (closeDirector()) sounds.back();
+        else if (Profiles.enabled(this)) startActivity(new Intent(this, ProfilesActivity.class));
     }
 
     // ---- glass highlight -------------------------------------------------------------------------

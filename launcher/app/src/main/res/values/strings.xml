@@ -79,4 +79,8 @@
     <string name="channels_morning">Good morning, %1$s.</string>
     <string name="channels_afternoon">Good afternoon, %1$s.</string>
     <string name="channels_evening">Good evening, %1$s.</string>
+
+    <!-- Screensaver: what hangs, chosen with Left/Right (ClockDream) -->
+    <string name="gallery_masters">The masters</string>
+    <string name="gallery_mix">Mix</string>
 </resources>

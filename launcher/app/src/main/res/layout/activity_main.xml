@@ -233,12 +233,16 @@
 
         <!-- Watchlist chips (Watchlist, GroupAdapter): Hindi, Continue, Recently added, this year, genres.
              Moving onto one opens its posters in watchPanel below. Hidden until there is a saved list. -->
-        <!-- Chips fade out at both edges, which also keeps the focused one clear of the edge when it scrolls. -->
+        <!-- Chips fade out at both edges, which also keeps the focused one clear of the edge when it scrolls.
+             Each chip has a 4dp margin; the strip starts 4dp early so the first chip sits on the same left edge as
+             the clock and the posters. -->
         <HorizontalScrollView
             android:id="@+id/watchGroups"
             android:layout_width="match_parent"
             android:layout_height="42dp"
             android:layout_marginTop="6dp"
+            android:layout_marginStart="-4dp"
+            android:layout_marginEnd="-4dp"
             android:overScrollMode="never"
             android:scrollbars="none"
             android:requiresFadingEdge="horizontal"

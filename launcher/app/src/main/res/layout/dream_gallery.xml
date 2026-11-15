@@ -57,7 +57,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|start"
-        android:layout_marginStart="64dp"
+        android:layout_marginStart="56dp"
         android:layout_marginBottom="26dp"
         android:orientation="vertical">
 
@@ -79,7 +79,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:singleLine="true"
-            android:textColor="#99FFFFFF"
+            android:textColor="#A6FFFFFF"
             android:textSize="14sp"
             android:fontFamily="@font/outfit"
             android:fontVariationSettings="'wght' 400"
@@ -90,7 +90,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_marginEnd="64dp"
+        android:layout_marginEnd="56dp"
         android:layout_marginBottom="26dp"
         android:gravity="end"
         android:orientation="vertical">
@@ -101,9 +101,9 @@
             android:format12Hour="h:mm"
             android:format24Hour="HH:mm"
             android:textColor="#E6FFFFFF"
-            android:textSize="34sp"
+            android:textSize="32sp"
             android:fontFamily="@font/outfit"
-            android:fontVariationSettings="'wght' 200"
+            android:fontVariationSettings="'wght' 300"
             android:includeFontPadding="false" />
 
         <TextView
@@ -112,7 +112,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:singleLine="true"
-            android:textColor="#99FFFFFF"
+            android:textColor="#A6FFFFFF"
             android:textSize="13sp"
             android:fontFamily="@font/outfit"
             android:letterSpacing="0.14"

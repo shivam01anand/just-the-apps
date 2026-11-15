@@ -5,6 +5,8 @@
     <!-- Channels and "Who's watching?": a projection room at night, ivory type, brass for what OK will do. -->
     <color name="night">#FF0B0907</color>
     <color name="ivory">#FFF3EBDD</color>
+    <!-- Small type that sits straight on a picture (the date): nearly ivory, so it holds on a bright still. -->
+    <color name="ivory_soft">#FFE6DCCB</color>
     <color name="ivory_dim">#FFBDB09C</color>
     <color name="ivory_faint">#FF857967</color>
     <color name="brass">#FFD6AB5E</color>

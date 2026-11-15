@@ -11,6 +11,7 @@ import android.os.Looper;
 import android.service.dreams.DreamService;
 import android.view.Gravity;
 import android.view.View;
+import android.view.KeyEvent;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -58,6 +59,26 @@ public class ClockDream extends DreamService {
         }
     };
 
+    /** Left/Right change what hangs (Gallery modes); this swaps in a matching painting as soon as one is on the TV. */
+    private boolean switchable;
+    private int swapTries;
+    private TextView modeLabel;
+    private final Runnable swapSoon = new Runnable() {
+        @Override
+        public void run() {
+            Gallery.Art a = Gallery.take(ClockDream.this);
+            Gallery.prepare(ClockDream.this);
+            if (a != null) {
+                showArt(a);
+                handler.postDelayed(nextArt, ART_MS);
+            } else if (++swapTries < 12) {
+                handler.postDelayed(this, 1500);
+            } else {
+                handler.postDelayed(nextArt, ART_MS);
+            }
+        }
+    };
+
     private final Runnable tick = new Runnable() {
         @Override
         public void run() {
@@ -77,6 +98,9 @@ public class ClockDream extends DreamService {
         Gallery.prepare(this);   // the next one, or the first, so the gallery is ready next time
         if (first != null) {
             startGallery(first);
+            // With the household's own paintings listed, Left/Right choose what hangs; any other key still wakes.
+            switchable = Gallery.hasOwn(this);
+            setInteractive(switchable);
             return;
         }
         setContentView(R.layout.dream_clock);
@@ -116,9 +140,65 @@ public class ClockDream extends DreamService {
     }
 
     @Override
+    public boolean dispatchKeyEvent(KeyEvent e) {
+        if (!switchable) return super.dispatchKeyEvent(e);
+        int k = e.getKeyCode();
+        if (k == KeyEvent.KEYCODE_VOLUME_UP || k == KeyEvent.KEYCODE_VOLUME_DOWN || k == KeyEvent.KEYCODE_VOLUME_MUTE) {
+            return super.dispatchKeyEvent(e);
+        }
+        if (k == KeyEvent.KEYCODE_DPAD_LEFT || k == KeyEvent.KEYCODE_DPAD_RIGHT) {
+            if (e.getAction() == KeyEvent.ACTION_DOWN && e.getRepeatCount() == 0) {
+                String was = Gallery.mode(this);
+                String now = Gallery.step(this, k == KeyEvent.KEYCODE_DPAD_LEFT ? -1 : 1);
+                showMode(now);
+                if (!now.equals(was)) {
+                    handler.removeCallbacks(nextArt);
+                    handler.removeCallbacks(swapSoon);
+                    swapTries = 0;
+                    Gallery.prepare(this);
+                    handler.postDelayed(swapSoon, 600);
+                }
+            }
+            return true;
+        }
+        if (e.getAction() == KeyEvent.ACTION_UP) finish();   // any other key wakes the TV, as before
+        return true;
+    }
+
+    /** "The masters · Mix · Dolly Prasad", the one in use bright, fading away after a moment. */
+    private void showMode(String mode) {
+        if (modeLabel == null) {
+            modeLabel = new TextView(this);
+            modeLabel.setTypeface(getResources().getFont(R.font.outfit));
+            modeLabel.setTextSize(15);
+            modeLabel.setLetterSpacing(0.06f);
+            modeLabel.setAlpha(0f);
+            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
+            lp.bottomMargin = Math.round(30 * getResources().getDisplayMetrics().density);
+            ((FrameLayout) frame.getParent()).addView(modeLabel, lp);
+        }
+        String[] names = {getString(R.string.gallery_masters), getString(R.string.gallery_mix), Gallery.ownArtist(this)};
+        String[] modes = {Gallery.MASTERS, Gallery.MIX, Gallery.OWN};
+        android.text.SpannableStringBuilder sb = new android.text.SpannableStringBuilder();
+        for (int i = 0; i < names.length; i++) {
+            if (i > 0) sb.append("   \u00b7   ");
+            int start = sb.length();
+            sb.append(names[i]);
+            int color = modes[i].equals(mode) ? 0xF2FFFFFF : 0x73FFFFFF;
+            sb.setSpan(new android.text.style.ForegroundColorSpan(color), start, sb.length(), 0);
+        }
+        modeLabel.setText(sb);
+        modeLabel.animate().cancel();
+        modeLabel.animate().alpha(1f).setDuration(200).withEndAction(() ->
+                modeLabel.animate().alpha(0f).setStartDelay(2200).setDuration(500).start()).start();
+    }
+
+    @Override
     public void onDreamingStopped() {
         handler.removeCallbacks(tick);
         handler.removeCallbacks(nextArt);
+        handler.removeCallbacks(swapSoon);
         super.onDreamingStopped();
     }
 
@@ -126,6 +206,7 @@ public class ClockDream extends DreamService {
     public void onDetachedFromWindow() {
         handler.removeCallbacks(tick);
         handler.removeCallbacks(nextArt);
+        handler.removeCallbacks(swapSoon);
         decoder.shutdownNow();
         super.onDetachedFromWindow();
     }

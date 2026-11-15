@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 final class ChannelData {
 
     private static final String TAG = "TvHome.Channels";
-    private static final int DATA_VERSION = 3;
+    private static final int DATA_VERSION = 4;
     private static final long REFRESH_MS = 7L * 24 * 60 * 60 * 1000;
     private static final long RETRY_MS = 30L * 60 * 1000;
     private static final String JW_URL = "https://apis.justwatch.com/graphql";
@@ -85,8 +85,14 @@ final class ChannelData {
     private ChannelData() {
     }
 
+    /**
+     * Each person's titles and stills live in the app's Android/media folder, which adb can reach on Fire OS too,
+     * so a computer can pull the stills, sharpen the old ones and push them back (they're kept: a still is only
+     * downloaded when it's missing).
+     */
     static File dir(Context c, String profile) {
-        File base = Config.dir(c);
+        File base = Config.mediaDir(c);
+        if (base == null) base = Config.dir(c);
         if (base == null) base = c.getFilesDir();
         File d = new File(new File(base, "profiles"), profile);
         //noinspection ResultOfMethodCallIgnored
@@ -321,7 +327,7 @@ final class ChannelData {
             File f = new File(stills, it.imdb + ".jpg");
             if (!f.isFile() && backdrop != null) download(backdrop, f);
             // No landscape still (some old Doordarshan shows): IMDb's poster, cropped to the screen, beats black.
-            if (!f.isFile() && it.poster != null) download(it.poster.replace("._V1_", "._V1_QL80_UX1440_"), f);
+            if (!f.isFile() && it.poster != null) download(it.poster.replace("._V1_", "._V1_QL80_UX1920_"), f);
             if (f.isFile()) it.still = f.getName();
         }
         for (Person p : people.values()) {
@@ -527,7 +533,7 @@ final class ChannelData {
             JSONObject first = backs != null && backs.length() > 0 ? backs.getJSONObject(0) : null;
             String url = first != null ? first.optString("backdropUrl", null) : null;
             return url == null ? null
-                    : "https://images.justwatch.com" + url.replace("{profile}", "s1440").replace("{format}", "jpg");
+                    : "https://images.justwatch.com" + url.replace("{profile}", "s1920").replace("{format}", "jpg");
         }
         return null;
     }

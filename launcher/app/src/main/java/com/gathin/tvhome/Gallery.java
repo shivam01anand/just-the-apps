@@ -67,10 +67,10 @@ final class Gallery {
         } catch (Exception e) {
             Log.w(TAG, "gallery list unreadable", e);
         }
-        // A painter's own work, from config.json: title, artist, when ("c. 2016–2018"), url. Newest first. Only while
-        // "screensaver_own_on" is true (tools/own-paintings.sh on): for when guests come, not every day.
+        // A painter's own work, from config.json: title, artist, when ("c. 2016–2018"), url. Newest first. Whether it
+        // hangs is the mode (masters, mix or own), set from the screensaver with Left/Right or by tools/own-paintings.sh.
         JSONObject cfg = Config.overlay(c);
-        JSONArray own = cfg != null && cfg.optBoolean("screensaver_own_on", false) ? cfg.optJSONArray("screensaver_own") : null;
+        JSONArray own = cfg != null ? cfg.optJSONArray("screensaver_own") : null;
         for (int i = 0; own != null && i < own.length(); i++) {
             JSONObject o = own.optJSONObject(i);
             if (o == null || o.optString("url").isEmpty()) continue;
@@ -78,6 +78,44 @@ final class Gallery {
         }
         all = out;
         return all;
+    }
+
+    // ---- what hangs: the masters, a mix, or only the household's own ---------------------------
+
+    static final String MASTERS = "masters", MIX = "mix", OWN = "own";
+    private static final String[] MODES = {MASTERS, MIX, OWN};
+
+    static boolean hasOwn(Context c) {
+        for (Art a : all(c)) if (a.own) return true;
+        return false;
+    }
+
+    /** The painter's name on their own works, for the mode label; "" without any. */
+    static String ownArtist(Context c) {
+        for (Art a : all(c)) if (a.own) return a.artist;
+        return "";
+    }
+
+    /** The mode chosen last, else config.json's "screensaver_own_on" (true: mix), else the masters alone. */
+    static String mode(Context c) {
+        if (!hasOwn(c)) return MASTERS;
+        String m = prefs(c).getString("mode", null);
+        if (m != null && java.util.Arrays.asList(MODES).contains(m)) return m;
+        JSONObject cfg = Config.overlay(c);
+        return cfg != null && cfg.optBoolean("screensaver_own_on", false) ? MIX : MASTERS;
+    }
+
+    static void setMode(Context c, String m) {
+        if (!java.util.Arrays.asList(MODES).contains(m)) return;
+        prefs(c).edit().putString("mode", m).remove("order").putInt("pos", 0).apply();
+    }
+
+    /** Left (-1) or Right (+1) from the current mode, stopping at the ends: masters, mix, own. */
+    static String step(Context c, int by) {
+        int i = java.util.Arrays.asList(MODES).indexOf(mode(c));
+        String next = MODES[Math.max(0, Math.min(MODES.length - 1, i + by))];
+        setMode(c, next);
+        return next;
     }
 
     static boolean enabled(Context c) {
@@ -89,10 +127,18 @@ final class Gallery {
         List<Art> arts = all(c);
         if (arts.isEmpty()) return null;
         SharedPreferences p = prefs(c);
-        List<Integer> order = order(p, arts);
+        List<Integer> order = order(c, p, arts);
         int pos = p.getInt("pos", 0) % order.size();
         Art a = arts.get(order.get(pos));
-        if (!file(c, a).isFile()) return null;
+        if (!file(c, a).isFile()) {
+            // Not downloaded yet (just after a change of mode): hang the next one in this order that is, so the
+            // gallery still opens; the order catches up as the next ones arrive.
+            for (int k = 1; k < order.size(); k++) {
+                Art b = arts.get(order.get((pos + k) % order.size()));
+                if (file(c, b).isFile()) return b;
+            }
+            return null;
+        }
         if (pos + 1 >= order.size()) {
             p.edit().remove("order").putInt("pos", 0).apply();   // all seen: a new order next time
         } else {
@@ -117,7 +163,7 @@ final class Gallery {
             try {
                 List<Art> arts = all(c);
                 SharedPreferences p = prefs(c);
-                List<Integer> order = order(p, arts);
+                List<Integer> order = order(c, p, arts);
                 int pos = p.getInt("pos", 0) % order.size();
                 List<File> keep = new ArrayList<>();
                 for (int k = -1; k <= 1; k++) {
@@ -155,14 +201,18 @@ final class Gallery {
     }
 
     /**
-     * A shuffled order of every masterpiece, kept until all have shown. With paintings of the household's own, one
-     * of theirs hangs after every two masterpieces, newest first, starting again from the newest when they run out.
+     * The order paintings hang in, kept until all have shown. Masters: every masterpiece, shuffled. Own: the
+     * household's own, newest first. Mix: one of theirs after every two masterpieces, newest first, starting again
+     * from the newest when they run out.
      */
-    private static List<Integer> order(SharedPreferences p, List<Art> arts) {
+    private static List<Integer> order(Context c, SharedPreferences p, List<Art> arts) {
         int n = arts.size();
+        String mode = mode(c);
         List<Integer> masters = new ArrayList<>(), mine = new ArrayList<>();
         for (int i = 0; i < n; i++) (arts.get(i).own ? mine : masters).add(i);
-        String made = n + ":" + mine.size();
+        if (MASTERS.equals(mode)) mine.clear();
+        if (OWN.equals(mode) && !mine.isEmpty()) masters.clear();
+        String made = n + ":" + mine.size() + ":" + mode;
         String saved = p.getString("order", "");
         List<Integer> out = new ArrayList<>();
         for (String s : saved.split(",")) {
@@ -175,7 +225,10 @@ final class Gallery {
         if (made.equals(p.getString("orderFor", "")) && !out.isEmpty()) return out;
         out.clear();
         Collections.shuffle(masters);
-        if (masters.isEmpty()) masters.addAll(mine);
+        if (masters.isEmpty()) {   // only their own: newest first, as listed
+            out.addAll(mine);
+            mine.clear();
+        }
         for (int i = 0, k = 0; i < masters.size(); i++) {
             out.add(masters.get(i));
             if (!mine.isEmpty() && i % 2 == 1 && !arts.get(masters.get(i)).own) out.add(mine.get(k++ % mine.size()));

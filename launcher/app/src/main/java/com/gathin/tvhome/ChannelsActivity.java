@@ -13,16 +13,23 @@ import android.graphics.BitmapFactory;
 import android.graphics.Outline;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.LayerDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.SpannableString;
 import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
 import android.util.LruCache;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewOutlineProvider;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.Interpolator;
+import android.view.animation.PathInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -54,6 +61,13 @@ public class ChannelsActivity extends Activity {
     static final String EXTRA_FRESH = "fresh";
     private static final int TITLES = 0, PEOPLE = 1, FILMS_OF = 2, APPS = 3;
     private static final int ROW_H = 166, CELL_W = 176, CELL_H = 99, FACE = 99, FACE_W = 124, GAP = 16;
+    /** How much the cell he's on grows. */
+    private static final float LIFT = 1.04f;
+    /** Starts at once and settles gently: for anything that moves because he pressed a key. */
+    private static final Interpolator SETTLE = new PathInterpolator(0.2f, 0f, 0f, 1f);
+    /** For what fades in and what fades out. A still arriving on ARRIVE while the last one goes on LEAVE keeps the
+     *  picture from dipping towards black half way through the change. */
+    private static final Interpolator ARRIVE = new DecelerateInterpolator(), LEAVE = new AccelerateInterpolator();
     private static final List<String> DEFAULT_APPS = Arrays.asList("com.netflix.ninja", "com.amazon.firebat",
             "com.amazon.amazonvideo.livingroom", "com.amazon.firetv.youtube", "com.google.android.youtube.tv",
             "in.startv.hotstar", "com.stremio.one", "com.apple.atve.amazon.appletv", "com.apple.atve.androidtv.appletv",
@@ -80,6 +94,7 @@ public class ChannelsActivity extends Activity {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final ExecutorService decoder = Executors.newSingleThreadExecutor();
     private final LruCache<String, Bitmap> thumbs = new LruCache<>(48);
+    private Sounds sounds;
 
     private Profiles.Person person;
     private List<ChannelData.Channel> channels = new ArrayList<>();
@@ -96,7 +111,10 @@ public class ChannelsActivity extends Activity {
     private LinearLayout rowsColumn;
     private View act;
 
-    private final Runnable hideNote = () -> note.setVisibility(View.GONE);
+    private final Runnable hideNote = () -> {
+        if (reducedMotion) note.setVisibility(View.GONE);
+        else note.animate().alpha(0f).setDuration(300).withEndAction(() -> note.setVisibility(View.GONE)).start();
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,6 +127,7 @@ public class ChannelsActivity extends Activity {
         setContentView(R.layout.activity_channels);
         density = getResources().getDisplayMetrics().density;
         reducedMotion = Config.load(this).reducedMotion;
+        sounds = new Sounds(this);
         state = getSharedPreferences("channels_state_" + person.id, MODE_PRIVATE);
         front = findViewById(R.id.stillA);
         back = findViewById(R.id.stillB);
@@ -124,15 +143,25 @@ public class ChannelsActivity extends Activity {
         rowsColumn = findViewById(R.id.rows);
 
         int night = getColor(R.color.night);
+        // Holds a little longer under the words on the left, then lets go of the picture sooner on the right.
         findViewById(R.id.scrimLeft).setBackground(new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[]{alpha(night, 0.9f), alpha(night, 0.45f), alpha(night, 0f)}));
+                new int[]{alpha(night, 0.9f), alpha(night, 0.74f), alpha(night, 0.53f), alpha(night, 0.21f), alpha(night, 0f)}));
         findViewById(R.id.scrimBottom).setBackground(new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP,
                 new int[]{alpha(night, 1f), alpha(night, 0.92f), alpha(night, 0f)}));
+        // Lighter across the top now that the corner behind the clock has its own shade.
         findViewById(R.id.scrimTop).setBackground(new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-                new int[]{alpha(night, 0.55f), alpha(night, 0f)}));
-        for (int id : new int[]{R.id.time, R.id.date, R.id.kicker, R.id.title, R.id.meta}) {
-            ((TextView) findViewById(id)).setShadowLayer(dp(6), 0, dp(1), 0xB3000000);
-        }
+                new int[]{alpha(night, 0.4f), alpha(night, 0f)}));
+        GradientDrawable corner = new GradientDrawable();
+        corner.setGradientType(GradientDrawable.RADIAL_GRADIENT);
+        corner.setGradientCenter(1f, 0f);
+        corner.setGradientRadius(dp(400));
+        corner.setColors(new int[]{alpha(night, 0.6f), alpha(night, 0.36f), alpha(night, 0f)});
+        findViewById(R.id.scrimClock).setBackground(corner);
+        // Shadows by size: wide and soft under the big name, close and dense under small type, where a wide one
+        // only smudges. The small ones are what keep the date and the plot readable on a bright still.
+        title.setShadowLayer(dp(8), 0, dp(2), 0x99000000);
+        ((TextView) findViewById(R.id.time)).setShadowLayer(dp(5), 0, dp(1), 0xB3000000);
+        for (TextView t : new TextView[]{date, kicker, meta, plot, where}) t.setShadowLayer(dp(3), 0, dp(1), 0xD9000000);
 
         List<ChannelData.Channel> saved = ChannelData.load(this, person.id);
         if (saved != null) channels = saved;
@@ -159,6 +188,7 @@ public class ChannelsActivity extends Activity {
         super.onResume();
         if (person == null) return;
         date.setText(new SimpleDateFormat("EEEE d MMMM", Locale.ENGLISH).format(new Date()));
+        sounds.refresh(this);
         cameBack();
         ChannelData.refreshIfStale(this, person, fresh -> {
             channels = fresh;
@@ -171,6 +201,7 @@ public class ChannelsActivity extends Activity {
         super.onDestroy();
         decoder.shutdownNow();
         handler.removeCallbacksAndMessages(null);
+        if (sounds != null) sounds.release();
     }
 
     // ---- rows ---------------------------------------------------------------------------------
@@ -217,6 +248,12 @@ public class ChannelsActivity extends Activity {
         LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT);
         sp.topMargin = dp(8);
+        // A face sits in the middle of a wider cell (room for the name); pull the strip back so the first face,
+        // not its cell, meets the left edge the row's name and the film's name hang from.
+        if (r.kind == PEOPLE) {
+            v.setClipToPadding(false);   // a long name under the first face may now reach a little past the edge
+            strip.setTranslationX(-dp((FACE_W - FACE) / 2f));
+        }
         v.addView(strip, sp);
         r.view = v;
         r.strip = strip;
@@ -231,12 +268,12 @@ public class ChannelsActivity extends Activity {
             return;
         }
         float y = -dp(ROW_H) * at;
-        if (animate && !reducedMotion) rowsColumn.animate().translationY(y).setDuration(320).start();
+        if (animate && !reducedMotion) rowsColumn.animate().translationY(y).setDuration(340).setInterpolator(SETTLE).start();
         else rowsColumn.setTranslationY(y);
         for (int i = 0; i < rows.size(); i++) {
             Row r = rows.get(i);
             float a = i < at ? 0f : i == at ? 1f : i == at + 1 ? 0.5f : 0.22f;
-            if (animate && !reducedMotion) r.view.animate().alpha(a).setDuration(320).start();
+            if (animate && !reducedMotion) r.view.animate().alpha(a).setDuration(340).setInterpolator(SETTLE).start();
             else r.view.setAlpha(a);
             r.label.setTextColor(i == at ? getColor(R.color.ivory) : getColor(R.color.ivory_dim));
             if (i >= at - 1 && i <= at + 2) fill(r, i == at);
@@ -285,6 +322,7 @@ public class ChannelsActivity extends Activity {
         img.setScaleType(r.kind == APPS ? ImageView.ScaleType.FIT_CENTER : ImageView.ScaleType.CENTER_CROP);
         pic.addView(img, new FrameLayout.LayoutParams(pw, ph));
         String text;
+        int yearAt = -1;   // where the year starts in the caption, to set it a tone quieter than the name
         if (r.kind == APPS) {
             String pkg = r.apps.get(i);
             img.setImageDrawable(banner(pkg));
@@ -297,20 +335,32 @@ public class ChannelsActivity extends Activity {
             ChannelData.Item it = r.items.get(i);
             loadThumb(it.still, img, 4);
             text = it.series || it.year == 0 ? it.title : it.title + "  " + it.year;
+            if (!it.series && it.year != 0) yearAt = it.title.length();
             if (r.kind == TITLES && r.channel.numbered && i < cursor(r.channel)) {
                 pic.addView(badge(getString(R.string.channels_seen)), badgeParams());
             }
         }
         if (lit) {
+            // A finer brass ring, with a hairline of shade inside it so it keeps its edge against a bright still.
             View ring = new View(this);
             GradientDrawable stroke = new GradientDrawable();
-            stroke.setStroke(dp(2.5f), getColor(R.color.brass));
+            stroke.setStroke(dp(2), getColor(R.color.brass));
             stroke.setCornerRadius(radius);
-            ring.setBackground(stroke);
+            GradientDrawable edge = new GradientDrawable();
+            edge.setStroke(dp(1), 0x59000000);
+            edge.setCornerRadius(Math.max(0f, radius - dp(2)));
+            LayerDrawable both = new LayerDrawable(new Drawable[]{edge, stroke});
+            both.setLayerInset(0, dp(2), dp(2), dp(2), dp(2));
+            ring.setBackground(both);
             pic.addView(ring, new FrameLayout.LayoutParams(pw, ph));
         }
         cell.addView(pic, new LinearLayout.LayoutParams(pw, ph));
         TextView t = label(text, 12, R.font.mukta_medium, getColor(R.color.ivory));
+        if (yearAt >= 0) {
+            SpannableString toned = new SpannableString(text);
+            toned.setSpan(new ForegroundColorSpan(getColor(R.color.ivory_dim)), yearAt, text.length(), 0);
+            t.setText(toned);
+        }
         t.setSingleLine(true);
         t.setEllipsize(TextUtils.TruncateAt.END);
         t.setGravity(face ? Gravity.CENTER_HORIZONTAL : Gravity.START);
@@ -321,20 +371,25 @@ public class ChannelsActivity extends Activity {
         if (lit) {   // grows from its top-left corner, so it stays on the row's left edge and clear of the row below
             cell.setPivotX(0);
             cell.setPivotY(0);
-            cell.setScaleX(1.04f);
-            cell.setScaleY(1.04f);
+            if (reducedMotion) {
+                cell.setScaleX(LIFT);
+                cell.setScaleY(LIFT);
+            } else {   // the ring is there at once; only the lift eases in
+                cell.animate().scaleX(LIFT).scaleY(LIFT).setDuration(200).setInterpolator(SETTLE).start();
+            }
         }
         cell.setLayoutParams(lp);
         return cell;
     }
 
     private TextView badge(String text) {
-        TextView seen = label(text, 9, R.font.mukta_semibold, getColor(R.color.ivory_dim));
+        TextView seen = label(text, 10, R.font.mukta_semibold, getColor(R.color.ivory_dim));
+        seen.setLetterSpacing(0.03f);
         GradientDrawable bg = new GradientDrawable();
         bg.setColor(0xC70C0907);
         bg.setCornerRadius(dp(10));
         seen.setBackground(bg);
-        seen.setPadding(dp(6), dp(2), dp(6), dp(2));
+        seen.setPadding(dp(7), dp(2), dp(7), dp(2));
         return seen;
     }
 
@@ -475,7 +530,11 @@ public class ChannelsActivity extends Activity {
     private void moveRow(int by) {
         if (rows.isEmpty()) return;
         int next = Math.max(0, Math.min(rows.size() - 1, at + by));
-        if (next == at) return;
+        if (next == at) {
+            sounds.edge();
+            return;
+        }
+        sounds.move(by < 0 ? KeyEvent.KEYCODE_DPAD_UP : KeyEvent.KEYCODE_DPAD_DOWN);
         at = next;
         layoutRows(true);
     }
@@ -484,15 +543,24 @@ public class ChannelsActivity extends Activity {
         if (rows.isEmpty()) return;
         Row r = rows.get(at);
         int next = Math.max(0, Math.min(r.size() - 1, r.focus + by));
-        if (next == r.focus) return;
+        if (next == r.focus) {
+            sounds.edge();
+            return;
+        }
+        sounds.move(by < 0 ? KeyEvent.KEYCODE_DPAD_LEFT : KeyEvent.KEYCODE_DPAD_RIGHT);
         r.focus = next;
         fill(r, true);
         drawHero();
     }
 
     private void back() {
-        if (rows.isEmpty()) return;
+        if (rows.isEmpty()) {   // still setting up: nothing to undo, so straight to "Who's watching?"
+            sounds.back();
+            startActivity(new Intent(this, ProfilesActivity.class));
+            return;
+        }
         Row r = rows.get(at);
+        sounds.back();
         if (r.kind == FILMS_OF) {   // close the person's films, back to their face
             rows.remove(at);
             rowsColumn.removeView(r.view);
@@ -501,15 +569,18 @@ public class ChannelsActivity extends Activity {
             return;
         }
         int home = r.kind == TITLES ? cursor(r.channel) : 0;
-        if (r.focus != home) {
+        if (r.focus != home) {   // back to the start of the row
             r.focus = home;
             fill(r, true);
             drawHero();
+            return;
         }
+        startActivity(new Intent(this, ProfilesActivity.class));   // nothing left to undo: "Who's watching?"
     }
 
     private void choose() {
         if (rows.isEmpty()) return;
+        sounds.select();
         Row r = rows.get(at);
         if (r.kind == APPS) {
             Intent i = r.apps.isEmpty() ? null : Watchlist.launchIntent(getPackageManager(), r.apps.get(r.focus));
@@ -626,15 +697,26 @@ public class ChannelsActivity extends Activity {
         w.setAlpha(1f);
         w.setVisibility(View.VISIBLE);
         hello.setAlpha(0f);
-        hello.setTranslationY(dp(10));
-        hello.animate().alpha(1f).translationY(0).setDuration(reducedMotion ? 0 : 700).start();
-        handler.postDelayed(() -> w.animate().alpha(0f).setDuration(reducedMotion ? 0 : 600)
-                .withEndAction(() -> w.setVisibility(View.GONE)).start(), 1500);
+        hello.setTranslationY(dp(8));
+        hello.animate().alpha(1f).translationY(0).setDuration(reducedMotion ? 0 : 640).setInterpolator(SETTLE).start();
+        handler.postDelayed(() -> {
+            // The greeting leaves first, so it is gone before the home behind it shows through.
+            hello.animate().alpha(0f).translationY(-dp(4)).setDuration(reducedMotion ? 0 : 260).setInterpolator(LEAVE).start();
+            w.animate().alpha(0f).setDuration(reducedMotion ? 0 : 600).withEndAction(() -> w.setVisibility(View.GONE)).start();
+        }, 1500);
     }
 
     private void say(String text) {
         note.setText(text);
+        note.animate().cancel();
         note.setVisibility(View.VISIBLE);
+        if (reducedMotion) {
+            note.setAlpha(1f);
+        } else {
+            note.setAlpha(0f);
+            note.setTranslationY(-dp(4));
+            note.animate().alpha(1f).translationY(0).setDuration(240).setInterpolator(SETTLE).withEndAction(null).start();
+        }
         handler.removeCallbacks(hideNote);
         handler.postDelayed(hideNote, 3600);
     }
@@ -678,21 +760,21 @@ public class ChannelsActivity extends Activity {
         shownStill = file;
         File f = new File(new File(ChannelData.dir(this, person.id), "stills"), file);
         decoder.execute(() -> {
-            Bitmap b = decode(f, 1);
+            Bitmap b = decode(f, 1, Bitmap.Config.ARGB_8888);
             handler.post(() -> {
                 if (!file.equals(shownStill) || isDestroyed()) return;
                 ImageView in = back, out = front;
                 in.setImageBitmap(b);
                 in.setScaleX(1f);
                 in.setScaleY(1f);
-                in.animate().alpha(1f).setDuration(reducedMotion ? 0 : 600).start();
-                out.animate().alpha(0f).setDuration(reducedMotion ? 0 : 600).start();
+                in.animate().alpha(1f).setDuration(reducedMotion ? 0 : 600).setInterpolator(ARRIVE).start();
+                out.animate().alpha(0f).setDuration(reducedMotion ? 0 : 600).setInterpolator(LEAVE).start();
                 front = in;
                 back = out;
                 if (drift != null) drift.cancel();
                 if (!reducedMotion) {
-                    drift = ObjectAnimator.ofPropertyValuesHolder(in, PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, 1.05f),
-                            PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, 1.05f));
+                    drift = ObjectAnimator.ofPropertyValuesHolder(in, PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, 1.02f),
+                            PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, 1.02f));
                     drift.setDuration(24_000);
                     drift.setRepeatMode(ValueAnimator.REVERSE);
                     drift.setRepeatCount(ValueAnimator.INFINITE);
@@ -722,10 +804,15 @@ public class ChannelsActivity extends Activity {
     }
 
     private static Bitmap decode(File f, int sample) {
+        return decode(f, sample, Bitmap.Config.RGB_565);
+    }
+
+    /** The big picture decodes in full colour (no banding on skin and skies); thumbnails stay compact. */
+    private static Bitmap decode(File f, int sample, Bitmap.Config config) {
         if (!f.isFile()) return null;
         BitmapFactory.Options o = new BitmapFactory.Options();
         o.inSampleSize = sample;
-        o.inPreferredConfig = Bitmap.Config.RGB_565;
+        o.inPreferredConfig = config;
         try {
             return BitmapFactory.decodeFile(f.getPath(), o);
         } catch (OutOfMemoryError e) {

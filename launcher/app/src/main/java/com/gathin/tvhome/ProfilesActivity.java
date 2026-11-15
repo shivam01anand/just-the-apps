@@ -6,13 +6,17 @@ import android.graphics.BitmapFactory;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Outline;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.LayerDrawable;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewOutlineProvider;
+import android.view.animation.Interpolator;
+import android.view.animation.PathInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -27,12 +31,16 @@ import java.util.List;
  */
 public class ProfilesActivity extends Activity {
 
+    /** Starts at once and settles gently, as on the home it opens. */
+    private static final Interpolator SETTLE = new PathInterpolator(0.2f, 0f, 0f, 1f);
+
     private final List<View> cards = new ArrayList<>();
     private final List<View> rings = new ArrayList<>();
     private List<Profiles.Person> people;
     private int at;
     private float density;
     private boolean asked;
+    private Sounds sounds;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +52,7 @@ public class ProfilesActivity extends Activity {
         }
         density = getResources().getDisplayMetrics().density;
         asked = Profiles.shouldAsk(this);
+        sounds = new Sounds(this);
         at = Profiles.activeIndex(this, people);
 
         FrameLayout root = new FrameLayout(this);
@@ -75,9 +84,10 @@ public class ProfilesActivity extends Activity {
         hint.setGravity(Gravity.CENTER_VERTICAL);
         TextView ok = text("OK", 10, R.font.mukta_bold, getColor(R.color.brass_ink));
         ok.setGravity(Gravity.CENTER);
+        ok.setLetterSpacing(0.04f);
         ok.setBackgroundResource(R.drawable.ok_circle);
         hint.addView(ok, new LinearLayout.LayoutParams(dp(24), dp(24)));
-        TextView choose = text(getString(R.string.profiles_choose), 13, R.font.mukta_medium, getColor(R.color.ivory_faint));
+        TextView choose = text(getString(R.string.profiles_choose), 14, R.font.mukta_medium, getColor(R.color.ivory_dim));
         LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         cp.setMarginStart(dp(8));
         hint.addView(choose, cp);
@@ -120,19 +130,41 @@ public class ProfilesActivity extends Activity {
 
         LinearLayout words = new LinearLayout(this);
         words.setOrientation(LinearLayout.VERTICAL);
-        words.addView(text(p.name, 42, R.font.rozha_one, getColor(R.color.ivory)));
-        if (!p.tagline.isEmpty()) words.addView(text(p.tagline, 12, R.font.mukta_medium, getColor(R.color.ivory_dim)));
+        words.setClipChildren(false);   // room for the shadows below
+        // The same shadows as the home: wide and soft under the name, close under the small line, for a bright still.
+        TextView name = text(p.name, 42, R.font.rozha_one, getColor(R.color.ivory));
+        name.setShadowLayer(dp(8), 0, dp(2), 0x99000000);
+        words.addView(name);
+        if (!p.tagline.isEmpty()) {
+            TextView tagline = text(p.tagline, 12, R.font.mukta_medium, getColor(R.color.ivory_dim));
+            tagline.setShadowLayer(dp(3), 0, dp(1), 0xB3000000);
+            words.addView(tagline);
+        }
         FrameLayout.LayoutParams wp = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM);
-        wp.setMargins(dp(15), 0, dp(15), dp(14));
+        wp.setMargins(dp(16), 0, dp(16), dp(16));
         card.addView(words, wp);
 
+        // A hairline of light around every card, so the one not chosen still has an edge against the dark.
+        View edge = new View(this);
+        GradientDrawable hairline = new GradientDrawable();
+        hairline.setCornerRadius(dp(9));
+        hairline.setStroke(dp(1), 0x1FF3EBDD);
+        edge.setBackground(hairline);
+        card.addView(edge, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+
+        // The brass ring, with a hairline of shade inside it so it keeps its edge against a bright still.
         View ring = new View(this);
         GradientDrawable stroke = new GradientDrawable();
         stroke.setCornerRadius(dp(9));
         stroke.setStroke(dp(2.5f), getColor(R.color.brass));
-        ring.setBackground(stroke);
-        ring.setVisibility(View.GONE);
+        GradientDrawable inner = new GradientDrawable();
+        inner.setCornerRadius(dp(6.5f));
+        inner.setStroke(dp(1), 0x59000000);
+        LayerDrawable both = new LayerDrawable(new Drawable[]{inner, stroke});
+        both.setLayerInset(0, dp(2.5f), dp(2.5f), dp(2.5f), dp(2.5f));
+        ring.setBackground(both);
+        ring.setAlpha(0f);
         card.addView(ring, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         rings.add(ring);
 
@@ -147,13 +179,16 @@ public class ProfilesActivity extends Activity {
         for (int i = 0; i < cards.size(); i++) {
             View c = cards.get(i);
             boolean on = i == at;
-            rings.get(i).setVisibility(on ? View.VISIBLE : View.GONE);
-            float s = on ? 1.07f : 1f;
-            if (animate) c.animate().scaleX(s).scaleY(s).alpha(on ? 1f : 0.5f).setDuration(260).start();
-            else {
+            View ring = rings.get(i);
+            float s = on ? 1.05f : 1f, a = on ? 1f : 0.6f;
+            if (animate) {
+                c.animate().scaleX(s).scaleY(s).alpha(a).setDuration(280).setInterpolator(SETTLE).start();
+                ring.animate().alpha(on ? 1f : 0f).setDuration(on ? 180 : 280).start();
+            } else {
                 c.setScaleX(s);
                 c.setScaleY(s);
-                c.setAlpha(on ? 1f : 0.5f);
+                c.setAlpha(a);
+                ring.setAlpha(on ? 1f : 0f);
             }
         }
     }
@@ -163,13 +198,18 @@ public class ProfilesActivity extends Activity {
         if (e.getAction() != KeyEvent.ACTION_DOWN) return super.dispatchKeyEvent(e);
         switch (e.getKeyCode()) {
             case KeyEvent.KEYCODE_DPAD_LEFT:
-                at = Math.max(0, at - 1);
-                focus(true);
+            case KeyEvent.KEYCODE_DPAD_RIGHT: {
+                int by = e.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT ? -1 : 1;
+                int next = Math.max(0, Math.min(people.size() - 1, at + by));
+                if (next == at) {
+                    sounds.edge();
+                } else {
+                    sounds.move(e.getKeyCode());
+                    at = next;
+                    focus(true);
+                }
                 return true;
-            case KeyEvent.KEYCODE_DPAD_RIGHT:
-                at = Math.min(people.size() - 1, at + 1);
-                focus(true);
-                return true;
+            }
             case KeyEvent.KEYCODE_DPAD_UP:
             case KeyEvent.KEYCODE_DPAD_DOWN:
                 return true;
@@ -180,7 +220,10 @@ public class ProfilesActivity extends Activity {
                 if (e.getRepeatCount() == 0) choose();
                 return true;
             case KeyEvent.KEYCODE_BACK:
-                if (!asked) finish();   // from Menu: back to whoever was watching. On waking it waits for a choice.
+                if (!asked) {   // from Menu or Back: back to whoever was watching. On waking it waits for a choice.
+                    sounds.back();
+                    finish();
+                }
                 return true;
             default:
                 return super.dispatchKeyEvent(e);
@@ -188,11 +231,24 @@ public class ProfilesActivity extends Activity {
     }
 
     private void choose() {
+        sounds.select();
         Profiles.Person p = people.get(at);
         Profiles.choose(this, p);
         Profiles.open(this, p, true);
         finish();
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (sounds != null) sounds.refresh(this);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (sounds != null) sounds.release();
     }
 
     private TextView text(String s, float sp, int font, int color) {

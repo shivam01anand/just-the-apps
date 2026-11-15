@@ -62,8 +62,10 @@ a series. The TV looks up each title's details, a still and the app it plays in 
 ]
 ```
 
-The screensaver can also hang the household's own paintings between the masterpieces: list them under
-`screensaver_own` and switch them on for guests with `tools/own-paintings.sh on` (`off` after).
+The screensaver can also hang the household's own paintings: list them under `screensaver_own`. While a painting
+is up, Left and Right choose between the masters, a mix (one of yours after every two) and only your own;
+`tools/own-paintings.sh masters | mix | own` sets the same from a computer. Back on any home goes to
+"Who's watching?".
 
 ## Why this exists
 
