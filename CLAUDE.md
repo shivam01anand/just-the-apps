@@ -1,3 +1,3 @@
-Someone wants their Hisense Android TV set up. Follow the playbook:
+Someone wants their Android TV or Fire TV Stick set up. Follow the playbook:
 
 @AGENTS.md

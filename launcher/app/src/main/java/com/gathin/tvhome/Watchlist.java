@@ -238,15 +238,33 @@ final class Watchlist {
         return i >= 0 ? i : Integer.MAX_VALUE;
     }
 
-    /** A streaming service the owner has: JustWatch's technical name, the label shown, the app's package. */
+    /**
+     * A streaming service the owner has: JustWatch's technical name, the label shown, the app's package, and
+     * the package manager, to check the app takes a link before it's used.
+     */
     private static final class Service {
         final String tech, label, pkg;
+        final PackageManager pm;
 
-        Service(String tech, String label, String pkg) {
+        Service(String tech, String label, String pkg, PackageManager pm) {
             this.tech = tech;
             this.label = label;
             this.pkg = pkg;
+            this.pm = pm;
         }
+    }
+
+    /** YouTube's app: Android TV's, else Fire TV's. Podcast episodes open in whichever is installed. */
+    private static final String[] YOUTUBE_PACKAGES = {"com.google.android.youtube.tv", "com.amazon.firetv.youtube"};
+    private static volatile String youtubePkg = YOUTUBE_PACKAGES[0];
+
+    /** The first of these packages that is installed and can be opened, or null. */
+    private static String firstInstalled(PackageManager pm, String... pkgs) {
+        for (String pkg : pkgs) {
+            String p = pkg.trim();
+            if (!p.isEmpty() && (pm.getLeanbackLaunchIntentForPackage(p) != null || pm.getLaunchIntentForPackage(p) != null)) return p;
+        }
+        return null;
     }
 
     interface Listener {
@@ -440,6 +458,8 @@ final class Watchlist {
         for (Item it : before.watchlist) saved.put(it.imdb, it);
         Config cfg = Config.load(c);
         List<Service> services = installedServices(c, cfg.watchlistServices);
+        String yt = firstInstalled(c.getPackageManager(), YOUTUBE_PACKAGES);
+        if (yt != null) youtubePkg = yt;
         // A service added (an app installed, or the list changed) can hold any title: look every one up again.
         StringBuilder sig = new StringBuilder();
         for (Service sv : services) sig.append(sv.tech).append(',');
@@ -718,15 +738,20 @@ final class Watchlist {
         f.delete();
     }
 
-    /** The configured services, in order of preference, whose app is installed and enabled. */
+    /**
+     * The configured services, in order of preference, whose app is installed and enabled. A line may name
+     * several packages for one service, comma separated (Android TV's app, then Fire TV's): the first installed
+     * one is used.
+     */
     private static List<Service> installedServices(Context c, List<String> lines) {
         List<Service> out = new ArrayList<>();
         PackageManager pm = c.getPackageManager();
         for (String line : lines) {
             String[] p = line.split("\\|");
             if (p.length != 3) continue;
-            if (pm.getLeanbackLaunchIntentForPackage(p[2]) == null && pm.getLaunchIntentForPackage(p[2]) == null) continue;
-            out.add(new Service(p[0], p[1], p[2]));
+            String pkg = firstInstalled(pm, p[2].split(","));
+            if (pkg == null) continue;
+            out.add(new Service(p[0], p[1], pkg, pm));
         }
         return out;
     }
@@ -1128,7 +1153,7 @@ final class Watchlist {
         it.published = e.published;
         it.plot = summary(e.description);
         it.service = "YouTube";
-        it.pkg = "com.google.android.youtube.tv";
+        it.pkg = youtubePkg;
         it.intentUri = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=" + e.video))
                 .setPackage(it.pkg).toUri(Intent.URI_INTENT_SCHEME);
         it.checked = System.currentTimeMillis();
@@ -1353,6 +1378,7 @@ final class Watchlist {
      * The link that opens the title. JustWatch's Android TV links for Netflix and Prime Video start playback, so
      * those use the web URL of the title page, which both apps open in place. SonyLIV ignores its own sony://
      * link and plays the title from its web URL. Hotstar's hotstar://content link opens its title page.
+     * An app that doesn't take the deep link (Fire TV's Zee5 takes only zee5.com links) gets the web URL.
      * Whatever the link says, it may only open the service's app.
      */
     private static Intent offerIntent(Service s, String web, String deeplink) {
@@ -1369,7 +1395,7 @@ final class Watchlist {
                 i.setSelector(null);
                 i.setFlags(0);
                 i.setPackage(s.pkg);
-                return i;
+                if (web == null || s.pm.resolveActivity(i, 0) != null) return i;
             } catch (URISyntaxException ignored) {
             }
         }

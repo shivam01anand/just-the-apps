@@ -128,12 +128,14 @@
     <bool name="weather">false</bool>
     <string name="weather_place" translatable="false"></string>
 
+    <!-- One service per line: JustWatch technical name|label|app package. Several packages, comma separated, for
+         one service: the first installed is used (Android TV's app, then Fire TV's). -->
     <string-array name="watchlist_services">
         <item>netflix|Netflix|com.netflix.ninja</item>
-        <item>amazonprimevideo|Prime Video|com.amazon.amazonvideo.livingroom</item>
+        <item>amazonprimevideo|Prime Video|com.amazon.amazonvideo.livingroom,com.amazon.firebat</item>
         <item>jiohotstar|Hotstar|in.startv.hotstar</item>
-        <item>appletvplus|Apple TV|com.apple.atve.androidtv.appletv</item>
-        <item>sonyliv|SonyLIV|com.sonyliv</item>
-        <item>zee5|Zee5|com.graymatrix.did</item>
+        <item>appletvplus|Apple TV|com.apple.atve.androidtv.appletv,com.apple.atve.amazon.appletv</item>
+        <item>sonyliv|SonyLIV|com.sonyliv,com.onemainstream.sonyliv.android</item>
+        <item>zee5|Zee5|com.graymatrix.did,com.zee5.amazon</item>
     </string-array>
 </resources>

@@ -3,7 +3,7 @@
 Turn the TV on, open [Claude Code](https://claude.com/claude-code) on a laptop on the same Wi-Fi, and say:
 
 ```
-my tv is on. it's go time on https://github.com/shivam01anand/hisense-just-the-apps. change my life forever
+my tv is on. it's go time on https://github.com/shivam01anand/just-the-apps. change my life forever
 ```
 
 That's all. The assistant fetches this project and follows [AGENTS.md](AGENTS.md). It finds the TV on your
@@ -15,7 +15,7 @@ Other assistants that can run commands on your laptop work too. Give them the sa
 ## If you'd rather give it everything up front
 
 ```
-my tv is on. it's go time on https://github.com/shivam01anand/hisense-just-the-apps. change my life forever.
+my tv is on. it's go time on https://github.com/shivam01anand/just-the-apps. change my life forever.
 The apps I use: Netflix, YouTube, Prime Video, Hotstar.
 Nothing is plugged in by HDMI.
 My mother watches mostly in Hindi.

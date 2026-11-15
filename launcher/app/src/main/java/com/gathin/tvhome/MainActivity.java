@@ -1400,6 +1400,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
      * On firmware with a standard settings handler the behaviour is unchanged.
      */
     private Intent systemIntent(String standardAction) {
+        if (Settings.ACTION_SETTINGS.equals(standardAction)) {
+            Intent fire = HomeKeyService.fireSettings(getPackageManager());
+            if (fire != null) return fire;
+        }
         Intent i = new Intent(standardAction);
         if (i.resolveActivity(getPackageManager()) != null) return i;
         i = new Intent().setComponent(new ComponentName(

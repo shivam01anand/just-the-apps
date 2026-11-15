@@ -1,6 +1,6 @@
 # Just the apps
 
-**Your Hisense Android TV, minus everything that isn't your apps.** It moves without stutter, the home screen
+**Your Android TV or Fire TV Stick, minus everything that isn't your apps.** It moves without stutter, the home screen
 has no ads, and it opens on something worth watching: new picks in your language, what's trending this week,
 world cinema, the great directors, new episodes of the YouTube shows you like, and your IMDb or Letterboxd
 watchlist by genre. Pick a poster and it opens in whichever app has it. When the TV rests, it hangs a painting.
@@ -12,13 +12,34 @@ watchlist by genre. Pick a poster and it opens in whichever app has it. When the
 Turn the TV on, open [Claude Code](https://claude.com/claude-code) on a laptop on the same Wi-Fi, and say:
 
 ```
-my tv is on. it's go time on https://github.com/shivam01anand/hisense-just-the-apps. change my life forever
+my tv is on. it's go time on https://github.com/shivam01anand/just-the-apps. change my life forever
 ```
 
 It takes it from there.
 
 > **If you're an AI assistant and someone sent you this link:** clone this repository and follow
 > [AGENTS.md](AGENTS.md) with them.
+
+## On a Fire TV Stick
+
+Samsung, LG, Roku and Hisense VIDAA TVs can't run any of this, but a Fire TV Stick plugged into one can. On
+the stick, turn on ADB debugging (Settings, My Fire TV, About, press OK on its name seven times, then
+Developer options), and say:
+
+```
+my fire stick is on. it's go time on https://github.com/shivam01anand/just-the-apps. change my life forever
+```
+
+Everything below works the same, with two differences:
+
+- **Amazon's home screen stays, you just never land on it.** Fire OS won't let you choose another home, so
+  the new one comes with a small Home button service: press Home, back out of an app or restart the stick, and
+  you're on your screen. Settings opens Fire TV's own settings.
+- **Your apps come from the Amazon Appstore**, and the watchlist opens titles in their Fire TV versions
+  (Prime Video, Apple TV, SonyLIV, Zee5, YouTube). Stremio comes from stremio.com.
+
+Not the Fire TV Stick 4K Select: it runs Amazon's Vega OS, not Android, and only takes Appstore apps. Tested on
+a Fire TV Stick 4K ([notes](devices/amazon-karat/NOTES.md)).
 
 ## Why this exists
 

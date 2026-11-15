@@ -26,14 +26,28 @@ echo "  $out"
 case "$out" in *Success*) ;; *) echo "Install failed; nothing else was changed." >&2; exit 1 ;; esac
 tv pm grant $LAUNCHER android.permission.ACCESS_FINE_LOCATION >/dev/null 2>&1
 if [ -f "$MY/config.json" ]; then
-  adb -s "$TV" push "$MY/config.json" /sdcard/Android/data/$LAUNCHER/files/config.json >/dev/null && echo "  pushed my-tv/config.json"
-  tv am force-stop $LAUNCHER
+  push_config "$MY/config.json" && echo "  pushed $(basename "$MY")/config.json"
 fi
 tv cmd package compile -m speed -f $LAUNCHER >/dev/null
 tv am start -W -n $LAUNCHER/.MainActivity | grep -E '^(Status|Error)'
 
 echo "== making it Home"
 stock=$(home_activity | cut -d/ -f1)
+if [ "$stock" = "$FIRE_HOME" ]; then
+  # Fire OS: Amazon's home stays the default. HomeKeyService opens the new home over it whenever it comes up
+  # (Home, leaving an app, a restart).
+  enable_home_service
+  tv settings put secure screensaver_components $LAUNCHER/.ClockDream
+  tv settings put secure screensaver_enabled 1
+  tv input keyevent KEYCODE_HOME
+  sleep 4
+  case "$(tv dumpsys activity activities | grep -m1 -E 'mResumedActivity|topResumedActivity')" in
+    *"$LAUNCHER/"*) echo "  Fire OS: Home now opens the new home screen" ;;
+    *) echo "  Fire OS: Home still shows Amazon's home. Undo: settings put secure enabled_accessibility_services null" >&2; exit 1 ;;
+  esac
+  echo "Done. Press Home on the remote."
+  exit 0
+fi
 case "$stock" in
   $LAUNCHER) echo "  already Home" ;;
   com.google.android.tvlauncher|com.google.android.apps.tv.launcherx|com.google.android.leanbacklauncher)

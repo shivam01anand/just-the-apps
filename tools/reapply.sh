@@ -89,6 +89,9 @@ if has $LAUNCHER; then
   home=$(home_activity)
   case "$home" in
     $LAUNCHER/*) ok "Home opens the new home screen" ;;
+    "$FIRE_HOME"/*)
+      if home_service_on; then ok "Fire OS: Home is sent on to the new home screen"
+      else drift "Fire OS: the Home button service is off" enable_home_service; fi ;;
     *) drift "Home opens $home" tv cmd package set-home-activity --user 0 $LAUNCHER/.MainActivity
        if [ "$CHECK" = 0 ]; then
          case "$(home_activity)" in
@@ -113,10 +116,10 @@ fi
 
 if [ -f "$MY/config.json" ] && has $LAUNCHER; then
   echo "== home screen settings"
-  if [ "$(tv cat /sdcard/Android/data/$LAUNCHER/files/config.json 2>/dev/null)" = "$(cat "$MY/config.json")" ]; then
+  if [ "$(config_on_tv)" = "$(cat "$MY/config.json")" ]; then
     ok "config.json on the TV matches my-tv/config.json"
   else
-    drift "config.json missing or different" sh -c "adb -s '$TV' push '$MY/config.json' /sdcard/Android/data/$LAUNCHER/files/config.json && adb -s '$TV' shell -n am force-stop $LAUNCHER"
+    drift "config.json missing or different" push_config "$MY/config.json"
   fi
 fi
 

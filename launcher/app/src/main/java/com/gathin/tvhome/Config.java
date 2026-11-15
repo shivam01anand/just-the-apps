@@ -158,6 +158,13 @@ final class Config {
         return ctx.getExternalFilesDir(null);
     }
 
+    /** The app's Android/media folder: the tools push config.json here where adb can't reach Android/data (Fire OS). */
+    @SuppressWarnings("deprecation")
+    static File mediaDir(Context ctx) {
+        File[] dirs = ctx.getExternalMediaDirs();
+        return dirs != null && dirs.length > 0 ? dirs[0] : null;
+    }
+
     static Config load(Context ctx) {
         Resources res = ctx.getResources();
         List<String> dock = new ArrayList<>(Arrays.asList(res.getStringArray(R.array.dock_apps)));
@@ -202,6 +209,13 @@ final class Config {
 
         File dir = dir(ctx);
         File file = dir != null ? new File(dir, FILE_NAME) : null;
+        if (file == null || !file.isFile()) {
+            File media = mediaDir(ctx);
+            if (media != null && new File(media, FILE_NAME).isFile()) {
+                dir = media;
+                file = new File(media, FILE_NAME);
+            }
+        }
         JSONObject json = read(file);
         if (json != null) {
             applied = true;

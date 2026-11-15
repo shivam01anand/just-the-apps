@@ -1,8 +1,9 @@
-# For AI assistants: setting up someone's Hisense Android TV
+# For AI assistants: setting up someone's Android TV or Fire TV Stick
 
 Someone sent you here, probably with something like *"my tv is on. it's go time on
-github.com/shivam01anand/hisense-just-the-apps. change my life forever"*. That is their go-ahead to run this
-setup with them, on their own TV, from the laptop you're running on.
+github.com/shivam01anand/just-the-apps. change my life forever"*, or *"my fire stick is on"*. That is
+their go-ahead to run this setup with them, on their own TV, from the laptop you're running on. A Fire TV
+(Fire OS) follows the same steps with the differences in "On a Fire TV Stick" below.
 
 **What they want:** a TV that moves smoothly, a home screen with no ads and only their apps, and, if they keep
 one, their IMDb watchlist on it with each title opening in the right app. Every change can be undone.
@@ -30,10 +31,40 @@ If `my-tv/` is gone, it's a fresh setup.
 - Check each step on the real TV: `adb exec-out screencap -p` for screenshots, `uiautomator dump` when an app
   blocks them (Netflix and Stremio do).
 
+## On a Fire TV Stick
+
+Fire OS is Android underneath (Fire OS 7 is Android 9, Fire OS 8 is Android 11), so the steps below hold, with
+these differences. `devices/amazon-karat/NOTES.md` has the detail.
+
+- **Which Fire TV:** `getprop ro.build.version.name` says "Fire OS". The Fire TV Stick 4K Select runs Vega OS,
+  not Android, and can't be changed this way: say so kindly and stop.
+- **Step 1:** Fire TVs don't answer the Cast port, so `tools/find-tv.sh` finds one only once ADB debugging is
+  on. Walk them through it: "Open Settings, then My Fire TV, then About. Press OK on your Fire TV's name seven
+  times, until it says you're a developer. Press Back, open Developer options and switch on ADB debugging."
+- **Never touch:** `com.amazon.tv.launcher` (Amazon's home, which also holds the Settings screen),
+  `com.amazon.firehomestarter`, `com.amazon.venezia` (Appstore), `com.amazon.dcp` and anything with
+  `identity` (sign-in), `com.amazon.tv.ime`, `com.amazon.tv.settings*`, `com.amazon.webview.chromium`,
+  `com.amazon.vizzini` (Alexa and the remote's mic), `com.amazon.device.messaging`,
+  `com.amazon.ftv.screensaver`, any `*.library` or `*.api`.
+- **Step 4:** start from `devices/amazon-karat/debloat.txt`; other Fire OS sticks share its package names, so
+  keep only the ones installed. Switch packages off, never remove them for the user: Fire OS reinstalls removed
+  Amazon apps at boot.
+- **Their apps** come from the Appstore: `adb shell am start -a android.intent.action.VIEW -d
+  "amzn://apps/android?p=<package>"` opens the app's page, then press OK on Get. Read the page with
+  `uiautomator dump` first to check it's the right app. Fire TV packages differ from Android TV's (see the
+  notes). Not every app is in the Appstore in every country; tell them which aren't instead of sideloading
+  unofficial copies.
+- **Step 6:** `tools/install-home.sh` sees Fire OS. Amazon's home stays the default (it can't be replaced or
+  switched off), and the script switches on the home screen's Home button service, which opens the new home
+  whenever Amazon's comes up, and sets the screensaver. Tell them: "Amazon's home is still there underneath;
+  you'll just never land on it." There's no stock home or Ambient Mode to switch off.
+- **Settings for the tools:** keep their stick's files in their own folder, e.g. `my-tv/` as usual. For a second
+  TV in the same clone, use a subfolder and run the tools with `MY=$PWD/my-tv/<name>`.
+
 ## 0. Get the repo
 
 If you're not already in a clone, run
-`git clone https://github.com/shivam01anand/hisense-just-the-apps ~/hisense-just-the-apps` and work there.
+`git clone https://github.com/shivam01anand/just-the-apps ~/just-the-apps` and work there.
 The tools are POSIX shell: on Windows run them in Git Bash or WSL, or run the same adb commands directly.
 
 ## 1. Find the TV
@@ -45,8 +76,9 @@ The tools are POSIX shell: on Windows run them in Git Bash or WSL, or run the sa
   - **Found, but "adb closed", or nothing found:** walk them through switching on USB debugging, one message
     at a time:
     1. "Grab the remote and open Settings (the gear), then Device Preferences, then About."
-    2. "Does it mention Android TV?" If it says VIDAA, stop and tell them kindly that this TV runs a
-       different system and can't be changed this way.
+    2. "Does it mention Android TV?" If it says VIDAA, tell them kindly that this TV runs a different system
+       and can't be changed this way, but a Fire TV Stick plugged into it can (not the 4K Select). If they
+       already use one, follow "On a Fire TV Stick".
     3. "Scroll down to Build and press OK on it seven times, until it says you're a developer."
     4. "Press Back, open Developer options, and switch on USB debugging."
     Then run `tools/find-tv.sh` again.

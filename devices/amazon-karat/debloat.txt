@@ -1,0 +1,43 @@
+# Amazon Fire TV Stick 4K (device karat, AFTMA08C15), Fire OS 8.1.6.0 (Android 11), India.
+# Check with   adb shell getprop ro.product.device   ->  karat
+# Other Fire OS 7/8 sticks (Lite, 4K Max, Cube) use the same Amazon package names; check each is installed.
+# Not the Fire TV Stick 4K Select: it runs Vega OS, not Android, and takes only Appstore apps.
+# Tested 15 Nov 2026 with `pm disable-user --user 0`, then a restart and a check.
+#
+# Never switch these off (details in NOTES.md):
+#   com.amazon.tv.launcher (Amazon's home; also holds the Settings screen), com.amazon.firehomestarter,
+#   com.amazon.venezia (Appstore), com.amazon.dcp and *identity* (sign-in), com.amazon.tv.ime (keyboard),
+#   com.amazon.tv.settings*, com.amazon.webview.chromium, com.amazon.vizzini (Alexa voice, also the remote's
+#   mic), com.amazon.device.messaging (app notifications), com.amazon.ftv.screensaver, any *.library / *.api.
+# com.amazon.ftvads.deeplinking (home-screen ad links) refuses: SecurityException.
+#
+# Wait before restarting after switching packages off (tools/disable-group.sh does): a restart 7 seconds
+# after group2 brought it all back on. Removing Amazon Music or Silk for user 0 (`pm uninstall -k --user 0`)
+# does not stick: Fire OS reinstalls them at boot. Switched off, they stay off.
+
+# == group1: ads, sponsored content, tracking
+com.amazon.tv.acr                   # Automatic content recognition (watches the screen for ad targeting)
+com.amazon.hybridadidservice        # Advertising ID service
+com.amazon.sneakpeek                # Autoplaying previews on home
+com.amazon.shoptv.client            # Shop on TV
+com.amazon.shoptv.firetv.client     # Shop on TV (Fire TV client)
+com.amazon.minitv.android.app       # Amazon miniTV (free-with-ads)
+com.amazon.imdb.tv.android.app      # IMDb TV / free-with-ads
+com.amazon.device.sale.service      # Deals and sale notifications
+com.amazon.tv.easyupgrade           # Upgrade upsells
+com.amazon.device.telemetry.emitter # Telemetry
+com.amazon.wirelessmetrics.service  # Wi-Fi metrics
+com.amazon.perfcollection           # Performance data collection
+com.amazon.dp.logger                # Logging
+
+# == group2: Amazon apps not used here
+com.amazon.bueller.music             # Amazon Music
+com.amazon.cloud9                    # Silk browser ("Internet")
+com.amazon.gamehub                   # Games hub
+com.amazon.tv.livetv                 # Live tab
+com.amazon.tmm.tutorial              # Tutorials
+com.amazon.storm.lightning.tutorial  # Tutorials
+com.amazon.tahoe                     # Amazon Kids
+com.amazon.smarthomemapviewapp       # Smart-home map
+com.amazon.spotify.mediabrowserservice # Spotify for Alexa
+com.amazon.tv.releasenotes           # What's new notes
