@@ -233,9 +233,18 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
         }
     };
 
+    /** Handed over to "Who's watching?" or another person's home before anything was built (Profiles). */
+    private boolean routedAway;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Someone with their own home is watching (Profiles), or it's time to ask who is: hand over and step aside.
+        if (Profiles.route(this, true)) {
+            routedAway = true;
+            finish();
+            return;
+        }
         setContentView(R.layout.activity_main);
         density = getResources().getDisplayMetrics().density;
         // config.xml, overlaid by config.json from a pushed theme (see Config and tools/theme.sh).
@@ -485,6 +494,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        if (Profiles.route(this, intent != null && intent.hasCategory(Intent.CATEGORY_HOME))) {
+            finish();
+            return;
+        }
         if (intent == null || !intent.hasCategory(Intent.CATEGORY_HOME)) return;
         homeFresh = true;
         openDirector = null;   // a fresh Home shows the directors again, not the last one opened
@@ -632,6 +645,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (routedAway) return;   // finished before anything was set up
         backdropDecoder.shutdownNow();
         sounds.release();
         ConnectivityManager cm = getSystemService(ConnectivityManager.class);
@@ -650,6 +664,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener, W
      */
     @Override
     public boolean dispatchKeyEvent(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.KEYCODE_MENU && Profiles.enabled(this)) {
+            if (e.getAction() == KeyEvent.ACTION_DOWN && e.getRepeatCount() == 0) startActivity(new Intent(this, ProfilesActivity.class));
+            return true;
+        }
         if (e.getAction() == KeyEvent.ACTION_DOWN) {
             switch (e.getKeyCode()) {
                 case KeyEvent.KEYCODE_DPAD_UP:

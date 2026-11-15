@@ -33,14 +33,22 @@ final class Gallery {
     private static List<Art> all;
 
     static final class Art {
-        final String title, artist, url;
+        final String title, artist, url, when;
         final int year;
+        /** One of the household's own paintings (config.json "screensaver_own"), hung between the masterpieces. */
+        final boolean own;
 
         Art(String title, String artist, int year, String url) {
+            this(title, artist, year, url, year > 0 ? String.valueOf(year) : "", false);
+        }
+
+        Art(String title, String artist, int year, String url, String when, boolean own) {
             this.title = title;
             this.artist = artist;
             this.year = year;
             this.url = url;
+            this.when = when;
+            this.own = own;
         }
     }
 
@@ -59,6 +67,15 @@ final class Gallery {
         } catch (Exception e) {
             Log.w(TAG, "gallery list unreadable", e);
         }
+        // A painter's own work, from config.json: title, artist, when ("c. 2016–2018"), url. Newest first. Only while
+        // "screensaver_own_on" is true (tools/own-paintings.sh on): for when guests come, not every day.
+        JSONObject cfg = Config.overlay(c);
+        JSONArray own = cfg != null && cfg.optBoolean("screensaver_own_on", false) ? cfg.optJSONArray("screensaver_own") : null;
+        for (int i = 0; own != null && i < own.length(); i++) {
+            JSONObject o = own.optJSONObject(i);
+            if (o == null || o.optString("url").isEmpty()) continue;
+            out.add(new Art(o.optString("title"), o.optString("artist"), 0, o.optString("url"), o.optString("when"), true));
+        }
         all = out;
         return all;
     }
@@ -72,7 +89,7 @@ final class Gallery {
         List<Art> arts = all(c);
         if (arts.isEmpty()) return null;
         SharedPreferences p = prefs(c);
-        List<Integer> order = order(p, arts.size());
+        List<Integer> order = order(p, arts);
         int pos = p.getInt("pos", 0) % order.size();
         Art a = arts.get(order.get(pos));
         if (!file(c, a).isFile()) return null;
@@ -100,7 +117,7 @@ final class Gallery {
             try {
                 List<Art> arts = all(c);
                 SharedPreferences p = prefs(c);
-                List<Integer> order = order(p, arts.size());
+                List<Integer> order = order(p, arts);
                 int pos = p.getInt("pos", 0) % order.size();
                 List<File> keep = new ArrayList<>();
                 for (int k = -1; k <= 1; k++) {
@@ -137,8 +154,15 @@ final class Gallery {
         if (!tmp.renameTo(f)) throw new java.io.IOException("rename failed");
     }
 
-    /** A shuffled order of every painting, kept until all have shown. */
-    private static List<Integer> order(SharedPreferences p, int n) {
+    /**
+     * A shuffled order of every masterpiece, kept until all have shown. With paintings of the household's own, one
+     * of theirs hangs after every two masterpieces, newest first, starting again from the newest when they run out.
+     */
+    private static List<Integer> order(SharedPreferences p, List<Art> arts) {
+        int n = arts.size();
+        List<Integer> masters = new ArrayList<>(), mine = new ArrayList<>();
+        for (int i = 0; i < n; i++) (arts.get(i).own ? mine : masters).add(i);
+        String made = n + ":" + mine.size();
         String saved = p.getString("order", "");
         List<Integer> out = new ArrayList<>();
         for (String s : saved.split(",")) {
@@ -148,10 +172,15 @@ final class Gallery {
             } catch (NumberFormatException ignored) {
             }
         }
-        if (out.size() == n) return out;
+        if (made.equals(p.getString("orderFor", "")) && !out.isEmpty()) return out;
         out.clear();
-        for (int i = 0; i < n; i++) out.add(i);
-        Collections.shuffle(out);
+        Collections.shuffle(masters);
+        if (masters.isEmpty()) masters.addAll(mine);
+        for (int i = 0, k = 0; i < masters.size(); i++) {
+            out.add(masters.get(i));
+            if (!mine.isEmpty() && i % 2 == 1 && !arts.get(masters.get(i)).own) out.add(mine.get(k++ % mine.size()));
+        }
+        p.edit().putString("orderFor", made).apply();
         StringBuilder sb = new StringBuilder();
         for (int i : out) sb.append(sb.length() > 0 ? "," : "").append(i);
         p.edit().putString("order", sb.toString()).putInt("pos", 0).apply();

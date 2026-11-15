@@ -47,4 +47,36 @@
     <string name="card_state_new">New</string>
     <string name="card_state_new_key">New key</string>
     <string name="card_state_new_label">New name</string>
+
+    <!-- Who's watching (ProfilesActivity) -->
+    <string name="profiles_ask">Who\'s watching?</string>
+    <string name="profiles_choose">to choose</string>
+
+    <!-- One person's channels (ChannelsActivity) -->
+    <string name="channels_apps">Apps</string>
+    <string name="channels_getting_ready">Setting up your channels</string>
+    <string name="channels_getting_ready_note">This takes a few minutes the first time.</string>
+    <string name="channels_episode_kicker">Season %1$d, episode %2$d</string>
+    <string name="channels_seen">Seen</string>
+    <string name="channels_seen_it">You\'ve seen this one</string>
+    <string name="channels_up_next">Up next</string>
+    <string name="channels_open_app">Open</string>
+    <string name="channels_director">Director</string>
+    <string name="channels_star">Star</string>
+    <string name="channels_best_rated">Best rated: %1$s</string>
+    <string name="channels_see_films">See the films</string>
+    <string name="channels_films_by">Films by %1$s</string>
+    <string name="channels_films_with">Films with %1$s</string>
+    <string name="channels_seasons">%1$d seasons</string>
+    <string name="channels_series">A series</string>
+    <string name="channels_minutes">%1$d min</string>
+    <string name="channels_hours">%1$d h %2$02d min</string>
+    <string name="channels_watch_on">Watch on %1$s</string>
+    <string name="channels_watch_in">Watch in %1$s</string>
+    <string name="channels_next_on">Up next: %1$s</string>
+    <string name="channels_next_episode">Next: season %1$d, episode %2$d, %3$s</string>
+    <string name="channels_cannot_open">%1$s didn\'t open. Try it from the Apps channel.</string>
+    <string name="channels_morning">Good morning, %1$s.</string>
+    <string name="channels_afternoon">Good afternoon, %1$s.</string>
+    <string name="channels_evening">Good evening, %1$s.</string>
 </resources>

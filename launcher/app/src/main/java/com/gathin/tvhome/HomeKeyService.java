@@ -1,8 +1,11 @@
 package com.gathin.tvhome;
 
 import android.accessibilityservice.AccessibilityService;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.SystemClock;
 import android.provider.Settings;
@@ -35,15 +38,30 @@ public class HomeKeyService extends AccessibilityService {
 
     /** When Home was last pressed: Amazon's home appearing straight after it means "go to the top". */
     private long homePressedAt;
-    /** Recent redirects. If this launcher keeps failing to stay up, stop for a minute rather than loop. */
-    private final long[] redirects = new long[4];
+    /** Recent redirects. If this launcher keeps failing to stay up, stop for a little while rather than loop. */
+    private final long[] redirects = new long[6];
     private int nextRedirect;
     private long pausedUntil;
+
+    /** With profiles: the TV going to sleep means the next person is asked who's watching when it wakes. */
+    private final BroadcastReceiver screen = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context c, Intent i) {
+            if (!Profiles.enabled(c)) return;
+            if (Intent.ACTION_SCREEN_OFF.equals(i.getAction())) Profiles.slept(c);
+            else if (Intent.ACTION_SCREEN_ON.equals(i.getAction())) openHome(true);
+        }
+    };
+    private boolean screenRegistered;
 
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
         settingsScancodes = getResources().getIntArray(R.array.settings_key_scancodes);
+        IntentFilter f = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+        f.addAction(Intent.ACTION_SCREEN_ON);
+        registerReceiver(screen, f);
+        screenRegistered = true;
         // After a restart Amazon's home is already up before this service starts, so its event is missed.
         if (isFireOs() && SystemClock.elapsedRealtime() < 5 * 60_000) openHome(true);
     }
@@ -97,9 +115,13 @@ public class HomeKeyService extends AccessibilityService {
         if (!cls.toString().startsWith(FIRE_HOME_ACTIVITY)) return;
         long now = SystemClock.uptimeMillis();
         if (now < pausedUntil) return;
+        // One appearance of Amazon's home raises several window events (and Fire OS can bring it up twice when the
+        // screensaver ends): one redirect covers them all.
+        long last = redirects[(nextRedirect + redirects.length - 1) % redirects.length];
+        if (last != 0 && now - last < 1_500) return;
         long oldest = redirects[nextRedirect];
-        if (oldest != 0 && now - oldest < 10_000) {   // four in ten seconds: something is wrong
-            pausedUntil = now + 60_000;
+        if (oldest != 0 && now - oldest < 10_000) {   // six real redirects in ten seconds: something is wrong
+            pausedUntil = now + 15_000;
             return;
         }
         redirects[nextRedirect] = now;
@@ -118,5 +140,12 @@ public class HomeKeyService extends AccessibilityService {
 
     @Override
     public void onInterrupt() {
+    }
+
+    @Override
+    public void onDestroy() {
+        if (screenRegistered) unregisterReceiver(screen);
+        screenRegistered = false;
+        super.onDestroy();
     }
 }

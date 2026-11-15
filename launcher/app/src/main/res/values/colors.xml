@@ -2,4 +2,11 @@
 <resources>
     <!-- Behind the first frame of Home, matching the plum of Backdrop.base(). -->
     <color name="home_base">#FF140F17</color>
+    <!-- Channels and "Who's watching?": a projection room at night, ivory type, brass for what OK will do. -->
+    <color name="night">#FF0B0907</color>
+    <color name="ivory">#FFF3EBDD</color>
+    <color name="ivory_dim">#FFBDB09C</color>
+    <color name="ivory_faint">#FF857967</color>
+    <color name="brass">#FFD6AB5E</color>
+    <color name="brass_ink">#FF1B1307</color>
 </resources>

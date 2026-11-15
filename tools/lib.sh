@@ -39,6 +39,9 @@ push_config() {
   adb -s "$TV" push "$1" "$CONFIG_DATA" >/dev/null 2>&1 ||
     { tv mkdir -p "${CONFIG_MEDIA%/*}" && adb -s "$TV" push "$1" "$CONFIG_MEDIA" >/dev/null 2>&1; } || return 1
   tv am force-stop $LAUNCHER
+  # Fire OS switches an app's accessibility service off when the app is force-stopped: put the Home button back.
+  if [ "$(home_activity | cut -d/ -f1)" = "$FIRE_HOME" ]; then enable_home_service; fi
+  return 0
 }
 
 # Fire OS keeps Amazon's home as the default and can't be changed or switched off. HomeKeyService (an
@@ -59,6 +62,21 @@ enable_home_service() {
     *) tv settings put secure enabled_accessibility_services "$cur:$HOME_SERVICE" ;;
   esac
   tv settings put secure accessibility_enabled 1
+}
+
+# Fire OS: installs an app from the Amazon Appstore by opening its page and pressing Get, then waits for it.
+appstore_install() {
+  tv am start -a android.intent.action.VIEW -d "amzn://apps/android?p=$1" >/dev/null
+  sleep 8
+  tv input keyevent DPAD_CENTER
+  n=0
+  while [ $n -lt 36 ]; do
+    sleep 5
+    if tv pm list packages "$1" | grep -qx "package:$1"; then tv input keyevent KEYCODE_HOME; return 0; fi
+    n=$((n + 1))
+  done
+  tv input keyevent KEYCODE_HOME
+  return 1
 }
 
 home_activity() { tv cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME | tail -n 1; }

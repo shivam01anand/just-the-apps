@@ -41,6 +41,30 @@ Everything below works the same, with two differences:
 Not the Fire TV Stick 4K Select: it runs Amazon's Vega OS, not Android, and only takes Appstore apps. Tested on
 a Fire TV Stick 4K ([notes](devices/amazon-karat/NOTES.md)).
 
+## Who's watching?
+
+A family TV can have one home per person. List them under `profiles` in `config.json` and the TV asks "Who's
+watching?" when it wakes, with whoever watched last already chosen, and Menu brings it back any time. Each person
+gets either this home screen (`"home": "watchlist"`, the rest of `config.json`) or a set of channels
+(`"home": "channels"`): rows of films and series built from IMDb IDs, the one you're on filling the top of the
+screen, rows of favourite directors or stars that open their best films, and rows that remember the next film in
+a series. The TV looks up each title's details, a still and the app it plays in by itself, once a week.
+
+```json
+"profiles": [
+  {"id": "mum", "name": "Dolly", "home": "watchlist", "tagline": "Lupin, TVF, K-dramas", "color": "#7A2E3B"},
+  {"id": "dad", "name": "Vikas", "home": "channels", "card_still": "tt0079221", "channels": [
+    {"name": "Comedies like Golmaal", "titles": ["tt0079221", "tt0072783"]},
+    {"name": "James Bond, in order", "numbered": true, "titles": ["tt0055928", "tt0057076"]},
+    {"name": "Action like Top Gun", "sort": "rating", "titles": ["tt1745960", "tt0117500"]},
+    {"name": "Favourite stars", "role": "actor", "people": ["nm0000821", "nm0000125"]}
+  ]}
+]
+```
+
+The screensaver can also hang the household's own paintings between the masterpieces: list them under
+`screensaver_own` and switch them on for guests with `tools/own-paintings.sh on` (`off` after).
+
 ## Why this exists
 
 > "I watch TV less because I hate the slow start-up and the laggy scrolling. I just want the apps."

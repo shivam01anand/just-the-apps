@@ -25,4 +25,8 @@
         <item name="android:clickable">true</item>
     </style>
     <style name="TopButton" parent="TopButtonBase" />
+
+    <style name="Theme.TvHome.Night">
+        <item name="android:windowBackground">@color/night</item>
+    </style>
 </resources>

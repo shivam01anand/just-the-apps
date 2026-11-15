@@ -242,7 +242,7 @@ final class Watchlist {
      * A streaming service the owner has: JustWatch's technical name, the label shown, the app's package, and
      * the package manager, to check the app takes a link before it's used.
      */
-    private static final class Service {
+    static final class Service {
         final String tech, label, pkg;
         final PackageManager pm;
 
@@ -743,7 +743,7 @@ final class Watchlist {
      * several packages for one service, comma separated (Android TV's app, then Fire TV's): the first installed
      * one is used.
      */
-    private static List<Service> installedServices(Context c, List<String> lines) {
+    static List<Service> installedServices(Context c, List<String> lines) {
         List<Service> out = new ArrayList<>();
         PackageManager pm = c.getPackageManager();
         for (String line : lines) {
@@ -1036,7 +1036,7 @@ final class Watchlist {
         return out;
     }
 
-    private static JSONObject imdb(String query) throws IOException, JSONException {
+    static JSONObject imdb(String query) throws IOException, JSONException {
         return post("https://caching.graphql.imdb.com/", new JSONObject().put("query", query),
                 "x-imdb-client-name", "imdb-web-next-localized");
     }
@@ -1381,7 +1381,7 @@ final class Watchlist {
      * An app that doesn't take the deep link (Fire TV's Zee5 takes only zee5.com links) gets the web URL.
      * Whatever the link says, it may only open the service's app.
      */
-    private static Intent offerIntent(Service s, String web, String deeplink) {
+    static Intent offerIntent(Service s, String web, String deeplink) {
         if (web != null && (s.tech.equals("netflix") || s.tech.equals("amazonprimevideo") || s.tech.equals("sonyliv"))) {
             Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(web)).setPackage(s.pkg);
             if (s.tech.equals("netflix")) i.putExtra("source", "30");   // Netflix's launch source for TV home screens
@@ -1492,14 +1492,14 @@ final class Watchlist {
         }
     }
 
-    private static Intent launchIntent(PackageManager pm, String pkg) {
+    static Intent launchIntent(PackageManager pm, String pkg) {
         Intent i = pm.getLeanbackLaunchIntentForPackage(pkg);
         return i != null ? i : pm.getLaunchIntentForPackage(pkg);
     }
 
     // ---- http ------------------------------------------------------------------------------------
 
-    private static JSONObject post(String url, JSONObject body, String... headers) throws IOException, JSONException {
+    static JSONObject post(String url, JSONObject body, String... headers) throws IOException, JSONException {
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
         conn.setConnectTimeout(15_000);
         conn.setReadTimeout(20_000);

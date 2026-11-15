@@ -203,7 +203,7 @@ public class ClockDream extends DreamService {
         }).start();
         caption.animate().alpha(0f).setDuration(500).withEndAction(() -> {
             artTitle.setText(a.title);
-            artArtist.setText(a.artist + (a.year > 0 ? ", " + a.year : ""));
+            artArtist.setText(a.artist + (a.when.isEmpty() ? "" : ", " + a.when));
             caption.animate().alpha(1f).setDuration(900).start();
         }).start();
     }

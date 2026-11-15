@@ -165,6 +165,20 @@ final class Config {
         return dirs != null && dirs.length > 0 ? dirs[0] : null;
     }
 
+    /** config.json: in the app's Android/data folder, or its Android/media folder (Fire OS); null if neither. */
+    static File overlayFile(Context ctx) {
+        File dir = dir(ctx);
+        File file = dir != null ? new File(dir, FILE_NAME) : null;
+        if (file != null && file.isFile()) return file;
+        File media = mediaDir(ctx);
+        return media != null && new File(media, FILE_NAME).isFile() ? new File(media, FILE_NAME) : file;
+    }
+
+    /** The whole of config.json, for the parts other classes read themselves (Profiles); null if there is none. */
+    static JSONObject overlay(Context ctx) {
+        return read(overlayFile(ctx));
+    }
+
     static Config load(Context ctx) {
         Resources res = ctx.getResources();
         List<String> dock = new ArrayList<>(Arrays.asList(res.getStringArray(R.array.dock_apps)));
@@ -207,15 +221,8 @@ final class Config {
         boolean gallery = res.getBoolean(R.bool.screensaver_gallery);
         String letterboxd = res.getString(R.string.watchlist_letterboxd_user).trim();
 
-        File dir = dir(ctx);
-        File file = dir != null ? new File(dir, FILE_NAME) : null;
-        if (file == null || !file.isFile()) {
-            File media = mediaDir(ctx);
-            if (media != null && new File(media, FILE_NAME).isFile()) {
-                dir = media;
-                file = new File(media, FILE_NAME);
-            }
-        }
+        File file = overlayFile(ctx);
+        File dir = file != null ? file.getParentFile() : dir(ctx);
         JSONObject json = read(file);
         if (json != null) {
             applied = true;

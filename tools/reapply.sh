@@ -10,6 +10,7 @@
 #   settings.txt    lines of "namespace key value", e.g. "global private_dns_mode hostname"
 #   config.json     the home screen's dock, watchlist and buttons
 #   apks/<package>.apk   apps to reinstall if missing (e.g. apks/com.stremio.one.apk)
+#   appstore.txt    Fire OS: Appstore apps to reinstall if missing
 #   remove.txt      apps to uninstall if they come back
 . "$(dirname "$0")/lib.sh"
 CHECK=0
@@ -55,6 +56,11 @@ if [ -d "$MY/apks" ]; then
     [ -f "$f" ] || continue
     p=$(basename "$f" .apk)
     if has "$p"; then ok "$p installed"; else drift "$p missing" adb -s "$TV" install "$f"; fi
+  done
+fi
+if [ -f "$MY/appstore.txt" ]; then   # Fire OS: apps that come from the Amazon Appstore
+  for p in $(list_packages "$MY/appstore.txt"); do
+    if has "$p"; then ok "$p installed"; else drift "$p missing (Appstore)" appstore_install "$p"; fi
   done
 fi
 if [ -f "$MY/remove.txt" ]; then
