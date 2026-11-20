@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.view.KeyEvent;
@@ -39,17 +41,42 @@ public class HomeKeyService extends AccessibilityService {
     /** When Home was last pressed: Amazon's home appearing straight after it means "go to the top". */
     private long homePressedAt;
     /** Recent redirects. If this launcher keeps failing to stay up, stop for a little while rather than loop. */
-    private final long[] redirects = new long[6];
+    private final long[] redirects = new long[8];
     private int nextRedirect;
     private long pausedUntil;
+    /** Whether the last screen to come up was Amazon's home. A redirect held back for a moment checks it again. */
+    private boolean fireHomeUp;
+    private boolean freshPending;
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final Runnable recheck = () -> {
+        if (fireHomeUp) redirect(freshPending);
+    };
+
+    /** Whether a home screen (this one or Amazon's) is what's showing, as opposed to an app. */
+    private boolean homeUp;
+    /**
+     * Fire OS: waking the stick doesn't ask the TV for its input, so a TV that opens on its own home screen
+     * stays there. Home does ask (HDMI-CEC One Touch Play), so Home is pressed for the viewer once the stick
+     * is awake. Skipped if they've already opened an app.
+     */
+    private final Runnable claimTv = () -> {
+        if (homeUp) performGlobalAction(GLOBAL_ACTION_HOME);
+    };
+    /** After waking: once for a TV that's already on, once more for a TV that was still starting up. */
+    private static final long[] CLAIM_TV_AFTER_MS = {2_500, 9_000};
 
     /** With profiles: the TV going to sleep means the next person is asked who's watching when it wakes. */
     private final BroadcastReceiver screen = new BroadcastReceiver() {
         @Override
         public void onReceive(Context c, Intent i) {
+            boolean on = Intent.ACTION_SCREEN_ON.equals(i.getAction());
+            if (isFireOs()) {
+                handler.removeCallbacks(claimTv);
+                if (on) for (long after : CLAIM_TV_AFTER_MS) handler.postDelayed(claimTv, after);
+            }
             if (!Profiles.enabled(c)) return;
-            if (Intent.ACTION_SCREEN_OFF.equals(i.getAction())) Profiles.slept(c);
-            else if (Intent.ACTION_SCREEN_ON.equals(i.getAction())) openHome(true);
+            if (on) openHome(true);
+            else Profiles.slept(c);
         }
     };
     private boolean screenRegistered;
@@ -111,23 +138,45 @@ public class HomeKeyService extends AccessibilityService {
         if (event.getEventType() != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return;
         CharSequence pkg = event.getPackageName();
         CharSequence cls = event.getClassName();
-        if (pkg == null || cls == null || !FIRE_HOME_PACKAGE.contentEquals(pkg)) return;
-        if (!cls.toString().startsWith(FIRE_HOME_ACTIVITY)) return;
+        if (pkg == null || cls == null) return;
+        fireHomeUp = FIRE_HOME_PACKAGE.contentEquals(pkg) && cls.toString().startsWith(FIRE_HOME_ACTIVITY);
+        homeUp = fireHomeUp || getPackageName().contentEquals(pkg);
+        if (!fireHomeUp) return;
+        // Home pressed: back to the top, as Home does. Left an app: return to where you were.
+        redirect(SystemClock.uptimeMillis() - homePressedAt < 3_000);
+    }
+
+    /**
+     * Opens this launcher over Amazon's home, unless it has just done so: then it looks again a moment later, so
+     * Home pressed twice in quick succession (or Amazon's home raised twice) never leaves Amazon's home showing.
+     */
+    private void redirect(boolean fresh) {
         long now = SystemClock.uptimeMillis();
-        if (now < pausedUntil) return;
+        handler.removeCallbacks(recheck);
+        freshPending = fresh;
+        if (now < pausedUntil) {
+            handler.postDelayed(recheck, pausedUntil - now);
+            return;
+        }
         // One appearance of Amazon's home raises several window events (and Fire OS can bring it up twice when the
         // screensaver ends): one redirect covers them all.
         long last = redirects[(nextRedirect + redirects.length - 1) % redirects.length];
-        if (last != 0 && now - last < 1_500) return;
+        if (last != 0 && now - last < 1_500) {
+            handler.postDelayed(recheck, last + 1_500 - now);
+            return;
+        }
+        // Eight redirects in twelve seconds: something may be fighting this launcher, so rest, then look again.
+        // (Fire OS keeps the Home key from this service, so Home pressed over and over for ten seconds gets here too;
+        // it then costs one ten-second wait, not Amazon's home for good.)
         long oldest = redirects[nextRedirect];
-        if (oldest != 0 && now - oldest < 10_000) {   // six real redirects in ten seconds: something is wrong
-            pausedUntil = now + 15_000;
+        if (!fresh && oldest != 0 && now - oldest < 12_000) {
+            pausedUntil = now + 10_000;
+            handler.postDelayed(recheck, 10_000);
             return;
         }
         redirects[nextRedirect] = now;
         nextRedirect = (nextRedirect + 1) % redirects.length;
-        // Home pressed: back to the top, as Home does. Left an app: return to where you were.
-        openHome(now - homePressedAt < 3_000);
+        openHome(fresh);
     }
 
     private void openHome(boolean fresh) {
@@ -144,6 +193,8 @@ public class HomeKeyService extends AccessibilityService {
 
     @Override
     public void onDestroy() {
+        handler.removeCallbacks(recheck);
+        handler.removeCallbacks(claimTv);
         if (screenRegistered) unregisterReceiver(screen);
         screenRegistered = false;
         super.onDestroy();

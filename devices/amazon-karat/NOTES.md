@@ -43,3 +43,20 @@ the stick. So Amazon's home stays, and the new home screen's **Home button** ser
 - **Stremio** isn't in the Appstore either. The Android TV build from stremio.com/downloads (armeabi-v7a)
   installs and opens titles from the watchlist.
 - **Netflix screenshots come out blank** (DRM). Use `uiautomator dump` to see where it is.
+- **Fire OS updates itself** (8.1.6.0 to 8.1.8.5 overnight, 16 Nov 2026) and the stick then forgot the Mac:
+  adb said `unauthorized` until "Allow USB debugging?" was accepted again on the TV (tick Always allow).
+  The home screen, the Home button service and the screensaver all survived the update.
+- **Fire OS keeps the Home key from accessibility services** and protects `CLOSE_SYSTEM_DIALOGS` with an
+  Amazon permission, so the home screen can't tell Home from leaving an app. It only sees Amazon's home come
+  up. Home pressed twice quickly used to leave Amazon's home showing; the service now looks again a moment
+  later.
+- **Home on the Fire TV remote switches the TV to the stick** (Fire OS sends HDMI-CEC One Touch Play on
+  every press). It's the way out when the TV is stuck on its own home screen.
+- **Waking the stick doesn't switch the TV to it.** The power button wakes the stick and turns the TV on, but
+  Fire OS sends no One Touch Play, so a TV that opens on its own home screen (a Hisense on VIDAA does) stays
+  there. The Home button service presses Home itself 2.5 s and 9 s after the stick wakes, while a home screen
+  is still showing: the first covers a TV that was already on, the second one that was starting up (the E8S
+  first answers on HDMI-CEC about 6 s after power-on). Each press shows Amazon's home for a blink.
+- **Asking JustWatch about hundreds of titles in a few minutes gets the home's address refused** (HTTP 403) for
+  a while: about 900 lookups from a laptop did it, and the block was gone within the hour. The walls home only
+  looks up a title when the viewer stops on it.
