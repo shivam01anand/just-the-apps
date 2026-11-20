@@ -59,7 +59,7 @@
             </intent-filter>
         </activity>
 
-        <!-- "Who's watching?" and one person's channels (Profiles). Their own tasks, so Home on the main screen
+        <!-- "Who's watching?", one person's channels and another's walls (Profiles). Their own tasks, so Home on the main screen
              never tears them down. -->
         <activity
             android:name=".ProfilesActivity"
@@ -75,6 +75,15 @@
             android:exported="false"
             android:launchMode="singleTask"
             android:taskAffinity="com.gathin.tvhome.channels"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.TvHome.Night"
+            android:configChanges="orientation|screenSize|keyboard|keyboardHidden|uiMode"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name=".WallsActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.gathin.tvhome.walls"
             android:excludeFromRecents="true"
             android:theme="@style/Theme.TvHome.Night"
             android:configChanges="orientation|screenSize|keyboard|keyboardHidden|uiMode"

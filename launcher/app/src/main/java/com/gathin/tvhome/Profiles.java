@@ -18,7 +18,8 @@ import java.util.List;
  * again. With fewer than two people listed nothing changes: the home screen is the one everyone has always had.
  *
  * Each person has a "home": "watchlist" is this launcher's own home screen (MainActivity, as configured by the rest
- * of config.json); "channels" is a set of TV channels built from lists of films and series (ChannelsActivity).
+ * of config.json); "channels" is a set of TV channels built from lists of films and series (ChannelsActivity);
+ * "walls" is full-screen walls of posters (WallsActivity).
  *
  * The TV asks again after it has slept or restarted, with whoever watched last already chosen.
  */
@@ -26,6 +27,7 @@ final class Profiles {
 
     static final String HOME_WATCHLIST = "watchlist";
     static final String HOME_CHANNELS = "channels";
+    static final String HOME_WALLS = "walls";
     private static final String PREFS = "profiles";
 
     static final class Person {
@@ -51,6 +53,10 @@ final class Profiles {
 
         boolean channels() {
             return HOME_CHANNELS.equals(home);
+        }
+
+        boolean walls() {
+            return HOME_WALLS.equals(home);
         }
     }
 
@@ -126,6 +132,10 @@ final class Profiles {
             a.startActivity(new Intent(a, ChannelsActivity.class).putExtra(ChannelsActivity.EXTRA_FRESH, fresh));
             return true;
         }
+        if (p != null && p.walls()) {
+            a.startActivity(new Intent(a, WallsActivity.class).putExtra(WallsActivity.EXTRA_FRESH, fresh));
+            return true;
+        }
         return false;
     }
 
@@ -134,6 +144,7 @@ final class Profiles {
         Intent i = p.channels()
                 ? new Intent(from, ChannelsActivity.class).putExtra(ChannelsActivity.EXTRA_WELCOME, welcome)
                 .putExtra(ChannelsActivity.EXTRA_FRESH, true)
+                : p.walls() ? new Intent(from, WallsActivity.class).putExtra(WallsActivity.EXTRA_FRESH, true)
                 : new Intent(from, MainActivity.class).addCategory(Intent.CATEGORY_HOME);
         from.startActivity(i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
     }

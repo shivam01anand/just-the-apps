@@ -1339,7 +1339,7 @@ final class Watchlist {
             + " deeplinkURL(platform: ANDROID_TV) package { technicalName } } } } } }";
 
     /** Sets the item's service and link: the first service in preference order that streams it, else Stremio. */
-    private static void findPlace(Item it, List<Service> services, String country) throws IOException, JSONException {
+    static void findPlace(Item it, List<Service> services, String country) throws IOException, JSONException {
         it.service = STREMIO;
         it.pkg = null;
         it.intentUri = null;

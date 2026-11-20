@@ -45,10 +45,21 @@ a Fire TV Stick 4K ([notes](devices/amazon-karat/NOTES.md)).
 
 A family TV can have one home per person. List them under `profiles` in `config.json` and the TV asks "Who's
 watching?" when it wakes, with whoever watched last already chosen, and Menu brings it back any time. Each person
+is a door across the screen showing what's behind it: a picture of their own (`card_image`, its address), a still
+from one of their films (`card_still`), or their posters. Each person
 gets either this home screen (`"home": "watchlist"`, the rest of `config.json`) or a set of channels
 (`"home": "channels"`): rows of films and series built from IMDb IDs, the one you're on filling the top of the
 screen, rows of favourite directors or stars that open their best films, and rows that remember the next film in
 a series. The TV looks up each title's details, a still and the app it plays in by itself, once a week.
+
+A third home is walls of posters (`"home": "walls"`), for someone who wants the best of everything and nothing
+else on screen. A wall fills the TV; the best rated tenth hang at double size. Stay on a poster for three seconds
+and the wall dims for a frame from the film, wide across the screen, over its title (and the one it was made
+under), country, year, length, language, the shape of its frame, its IMDb rating and place in the top 250, its
+Oscars, a line of story and where it plays. Up from the top row shows the other walls, and Play shuffles the one
+you're on. A wall can be the IMDb watchlist, the best rated
+of a genre or of this year, series, the Best Picture winners, a list of titles, directors who open their films,
+the newest videos of chosen YouTube channels, or a map of the world where each country opens its best films.
 
 ```json
 "profiles": [
@@ -58,9 +69,24 @@ a series. The TV looks up each title's details, a still and the app it plays in 
     {"name": "James Bond, in order", "numbered": true, "titles": ["tt0055928", "tt0057076"]},
     {"name": "Action like Top Gun", "sort": "rating", "titles": ["tt1745960", "tt0117500"]},
     {"name": "Favourite stars", "role": "actor", "people": ["nm0000821", "nm0000125"]}
+  ]},
+  {"id": "son", "name": "Shivam", "home": "walls", "walls": [
+    {"name": "My wall", "from": "watchlist"},
+    {"name": "YouTube", "from": "youtube", "channels": {"Photography": ["UCfhW84xfA6gEc4hDK90rR1Q"]}},
+    {"name": "World", "from": "world"},
+    {"name": "{year}", "from": "year"},
+    {"name": "Series", "from": "search", "types": ["tvSeries", "tvMiniSeries"], "min_rating": 8.3, "min_votes": 100000},
+    {"name": "Oscars", "from": "best_picture"},
+    {"name": "Directors", "from": "directors"},
+    {"name": "Romance", "from": "search", "genre": "Romance", "min_rating": 7.6, "min_votes": 60000},
+    {"name": "Nature", "from": "titles", "titles": ["tt0795176", "tt5491994"]}
   ]}
 ]
 ```
+
+A search wall takes `genre`, `types` (films unless you say), `exclude_genres`, `min_rating`, `min_votes` and
+`count`. Genres in `watchlist_exclude_genres` stay off every wall. `directors` uses `people` (IMDb name IDs), or
+else `watchlist_directors` plus whoever directed two or more films on the watchlist.
 
 The screensaver can also hang the household's own paintings: list them under `screensaver_own`. While a painting
 is up, Left and Right choose between the masters, a mix (one of yours after every two) and only your own;

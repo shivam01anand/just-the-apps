@@ -79,6 +79,22 @@
     <string name="channels_morning">Good morning, %1$s.</string>
     <string name="channels_afternoon">Good afternoon, %1$s.</string>
     <string name="channels_evening">Good evening, %1$s.</string>
+    <string name="walls_hanging">Hanging the posters</string>
+    <string name="walls_shuffle">Shuffle</string>
+    <string name="walls_imdb" translatable="false">IMDb</string>
+    <string name="walls_ok_watch">OK to watch</string>
+    <string name="walls_ok_films">OK to see them</string>
+    <string name="walls_on">On %1$s</string>
+    <string name="walls_in">In %1$s</string>
+    <string name="walls_series">Series</string>
+    <string name="walls_on_wall">%1$d on your wall</string>
+    <string name="walls_best_rated">best rated %1$s</string>
+    <string name="walls_films">%1$d films</string>
+    <string name="walls_best_films">%1$d best rated films</string>
+    <string name="walls_country_note">Its best rated films, by genre. OK for all %1$d.</string>
+    <string name="walls_views">%1$s views</string>
+    <string name="walls_top_rank">No. %1$d in IMDb\'s top 250</string>
+    <string name="walls_cannot_open">%1$s didn\'t open.</string>
 
     <!-- Screensaver: what hangs, chosen with Left/Right (ClockDream) -->
     <string name="gallery_masters">The masters</string>
